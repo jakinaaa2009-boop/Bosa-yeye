@@ -4,14 +4,44 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
 const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
 const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
-const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL;
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME?.trim();
+const R2_PUBLIC_URL = normalizePublicUrl(process.env.R2_PUBLIC_URL);
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+function normalizePublicUrl(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  const value = raw.trim();
+  if (!value) return undefined;
+  if (/^https?:\/\//i.test(value)) return value.replace(/\/$/, "");
+  return `https://${value.replace(/\/$/, "")}`;
+}
+
+/** Accepts account ID only, or a pasted R2 endpoint URL. */
+export function parseR2AccountId(raw?: string): string | undefined {
+  if (!raw) return undefined;
+  const value = raw.trim();
+  if (!value) return undefined;
+
+  const fromEndpoint = value.match(
+    /https?:\/\/([a-f0-9]{32})\.r2\.cloudflarestorage\.com/i
+  );
+  if (fromEndpoint) return fromEndpoint[1];
+
+  if (/^[a-f0-9]{32}$/i.test(value)) return value;
+
+  const withoutProtocol = value.replace(/^https?:\/\//i, "");
+  const host = withoutProtocol.split("/")[0];
+  const fromHost = host.match(/^([a-f0-9]{32})\.r2\.cloudflarestorage\.com$/i);
+  if (fromHost) return fromHost[1];
+
+  return undefined;
+}
+
+const R2_ACCOUNT_ID = parseR2AccountId(process.env.R2_ACCOUNT_ID);
 
 function getS3Client(): S3Client | null {
   if (
@@ -69,23 +99,29 @@ export async function uploadToR2(
   const key = `receipts/${userId}/${Date.now()}-${fileName.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
 
   if (!client || !R2_BUCKET_NAME) {
-    // Fallback for development without R2 configured
     const base64 = fileBuffer.toString("base64");
     const dataUrl = `data:${contentType};base64,${base64}`;
     return { url: dataUrl, key };
   }
 
-  await client.send(
-    new PutObjectCommand({
-      Bucket: R2_BUCKET_NAME,
-      Key: key,
-      Body: fileBuffer,
-      ContentType: contentType,
-    })
-  );
+  try {
+    await client.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: key,
+        Body: fileBuffer,
+        ContentType: contentType,
+      })
+    );
+  } catch (error) {
+    console.error("R2 upload error:", error);
+    throw new Error(
+      "Зураг хадгалахад алдаа гарлаа. R2 тохиргоог шалгана уу."
+    );
+  }
 
   const url = R2_PUBLIC_URL
-    ? `${R2_PUBLIC_URL.replace(/\/$/, "")}/${key}`
+    ? `${R2_PUBLIC_URL}/${key}`
     : `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET_NAME}/${key}`;
 
   return { url, key };
