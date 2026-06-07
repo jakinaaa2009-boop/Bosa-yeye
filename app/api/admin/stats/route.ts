@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { ensurePrizePool } from "@/lib/ensure-prizes";
 import User from "@/models/User";
 import Receipt from "@/models/Receipt";
 import Winner from "@/models/Winner";
-import Prize from "@/models/Prize";
 import { PRIZE_POOL_TOTAL } from "@/lib/prize-pool";
 import { NextRequest } from "next/server";
 
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       { name: "Татгалзсан", value: rejectedReceipts, color: "#EF4444" },
     ];
 
-    const prizes = await Prize.find({ isActive: true }).sort({ order: 1 });
+    const prizes = await ensurePrizePool();
     const totalRemaining = prizes.reduce(
       (sum, p) => sum + p.remainingQuantity,
       0

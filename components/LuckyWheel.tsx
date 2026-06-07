@@ -57,7 +57,7 @@ export default function LuckyWheel() {
   const [error, setError] = useState("");
 
   const fetchData = useCallback(() => {
-    fetch("/api/admin/lucky-wheel/spin")
+    fetch("/api/admin/lucky-wheel/spin", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (data.success) {
@@ -106,6 +106,7 @@ export default function LuckyWheel() {
     try {
       const res = await fetch("/api/admin/lucky-wheel/spin", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prizeId: selectedPrizeId }),
       });
@@ -249,18 +250,22 @@ export default function LuckyWheel() {
             <select
               value={selectedPrizeId}
               onChange={(e) => setSelectedPrizeId(e.target.value)}
-              disabled={spinning || allPrizesExhausted}
+              disabled={spinning || allPrizesExhausted || prizes.length === 0}
               className="w-full px-4 py-3 rounded-xl bg-coffee-dark/60 border border-gold/20 text-cream focus:outline-none focus:border-gold"
             >
-              {prizes.map((prize) => {
-                const exhausted = prize.remainingQuantity <= 0;
-                return (
-                  <option key={prize._id} value={prize._id} disabled={exhausted}>
-                    {getPrizeDropdownLabel(prize)}
-                    {exhausted ? " — Дууссан" : ""}
-                  </option>
-                );
-              })}
+              {prizes.length === 0 ? (
+                <option value="">Шагнал олдсонгүй</option>
+              ) : (
+                prizes.map((prize) => {
+                  const exhausted = prize.remainingQuantity <= 0;
+                  return (
+                    <option key={prize._id} value={prize._id} disabled={exhausted}>
+                      {getPrizeDropdownLabel(prize)}
+                      {exhausted ? " — Дууссан" : ""}
+                    </option>
+                  );
+                })
+              )}
             </select>
 
             {selectedPrize && selectedPrize.remainingQuantity <= 0 && (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { ensurePrizePool } from "@/lib/ensure-prizes";
 import Receipt from "@/models/Receipt";
 import Winner from "@/models/Winner";
 import Prize from "@/models/Prize";
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest) {
     if ("error" in authResult) return authResult.error;
 
     await connectDB();
+    await ensurePrizePool();
 
     const body = await request.json();
     const { prizeId } = body;
@@ -142,6 +144,8 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
+    const prizes = await ensurePrizePool();
+
     const wonReceiptIds = await Winner.distinct("receiptId");
 
     const eligibleReceipts = await Receipt.find({
@@ -151,13 +155,11 @@ export async function GET(request: NextRequest) {
       .populate("userId", "phone email")
       .sort({ createdAt: -1 });
 
-    const prizes = await Prize.find({ isActive: true }).sort({ order: 1 });
-
     const totalRemaining = prizes.reduce(
       (sum, p) => sum + p.remainingQuantity,
       0
     );
-    const allPrizesExhausted = totalRemaining === 0;
+    const allPrizesExhausted = prizes.length === 0 || totalRemaining === 0;
 
     return NextResponse.json({
       success: true,
