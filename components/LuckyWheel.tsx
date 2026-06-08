@@ -39,7 +39,7 @@ interface WinnerResult {
 
 function getPrizeDropdownLabel(prize: PrizeOption): string {
   if (prize.type === "car") {
-    return `Супер азтан — ${prize.carModel || "BAIC X55"} — Үлдсэн: ${prize.remainingQuantity}`;
+    return `Супер азтан — BAIC X55 — Үлдсэн: ${prize.remainingQuantity}`;
   }
   return `${prize.name} — Үлдсэн: ${prize.remainingQuantity}`;
 }

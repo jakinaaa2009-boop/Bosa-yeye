@@ -23,6 +23,7 @@ async function getLatestWinners() {
         id: w._id.toString(),
         phone: maskPhone(user?.phone || ""),
         prizeName: w.prizeName,
+        prizeType: w.prizeType as "car" | "cash",
         prizeValue: getWinnerPrizeValue({
           prizeType: w.prizeType as "car" | "cash",
           prizeAmount: w.prizeAmount,
@@ -40,8 +41,8 @@ export default async function WinnersSection() {
   const winners = await getLatestWinners();
 
   return (
-    <section className="py-20 lg:py-28 relative bg-wine-red/30">
-      <div className="absolute inset-0 coffee-texture opacity-20" />
+    <section className="py-20 lg:py-28 relative section-tint">
+      <div className="absolute inset-0 bg-wine-red/15" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
@@ -75,7 +76,13 @@ export default async function WinnersSection() {
                   </div>
                 </div>
                 <p className="text-gold font-medium text-sm">{winner.prizeName}</p>
-                <p className="text-gold-light text-sm font-semibold mt-1">
+                <p
+                  className={
+                    winner.prizeType === "car"
+                      ? "car-model-text text-gold-light text-sm mt-1"
+                      : "text-gold-light text-sm font-semibold mt-1"
+                  }
+                >
                   {winner.prizeValue}
                 </p>
               </div>

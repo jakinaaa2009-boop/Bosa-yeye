@@ -9,7 +9,7 @@ export const PRIZE_POOL_DISPLAY = [
   {
     title: "СУПЕР АЗТАН",
     prize: "BAIC X55",
-    description: "1 азтан автомашины эзэн болно",
+    description: "69,800,000₮ үнэтэй цоо шинэ автомашины 1 азтан",
     badge: "Супер шагнал",
     type: "car" as const,
     winnerCount: 1,
@@ -21,6 +21,7 @@ export const PRIZE_POOL_DISPLAY = [
     type: "cash" as const,
     winnerCount: 3,
     amount: 1_000_000,
+    imageKey: "oneMillion" as const,
   },
   {
     title: "500,000₮",
@@ -29,6 +30,7 @@ export const PRIZE_POOL_DISPLAY = [
     type: "cash" as const,
     winnerCount: 6,
     amount: 500_000,
+    imageKey: "fiveHundredThousand" as const,
   },
   {
     title: "100,000₮",
@@ -37,6 +39,7 @@ export const PRIZE_POOL_DISPLAY = [
     type: "cash" as const,
     winnerCount: 90,
     amount: 100_000,
+    imageKey: "oneHundredThousand" as const,
   },
 ] as const;
 
@@ -44,7 +47,7 @@ export const PRIZE_TABLE_ROWS = [
   {
     name: "Супер азтан",
     winners: "1 азтан",
-    perWinner: "BAIC X55 автомашин",
+    perWinner: "BAIC X55",
     total: "1 автомашин",
   },
   {
@@ -74,7 +77,7 @@ export const SEED_PRIZES = [
     carModel: "BAIC X55",
     quantity: 1,
     remainingQuantity: 1,
-    description: "BAIC X55 автомашины супер шагнал",
+    description: "69,800,000₮ үнэтэй цоо шинэ автомашины 1 азтан",
     order: 1,
     isActive: true,
   },
@@ -120,7 +123,7 @@ export function getWinnerPrizeValue(winner: {
   carModel?: string;
 }): string {
   if (winner.prizeType === "car") {
-    return winner.carModel ? `${winner.carModel} автомашин` : "BAIC X55 автомашин";
+    return winner.carModel || "BAIC X55";
   }
   if (winner.prizeAmount) {
     return new Intl.NumberFormat("mn-MN").format(winner.prizeAmount) + "₮";

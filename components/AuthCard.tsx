@@ -19,9 +19,7 @@ export default function AuthCard({
 }: AuthCardProps) {
   return (
     <section className="relative flex flex-1 flex-col items-center justify-center px-4 pt-16 pb-10 lg:pt-20 lg:pb-14 min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-5rem)]">
-      <div className="absolute inset-0 bg-coffee-dark" />
-      <div className="absolute inset-0 bg-hero-gradient opacity-40" />
-      <div className="absolute inset-0 coffee-texture opacity-25" />
+      <div className="absolute inset-0 bg-hero-gradient opacity-35" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[min(100%,28rem)] h-64 bg-gold/5 rounded-full blur-3xl pointer-events-none" />
 
       <div

@@ -1,4 +1,5 @@
 import { ShoppingBag, Upload, ShieldCheck, Trophy } from "lucide-react";
+import ParticipationRules from "./ParticipationRules";
 
 const steps = [
   {
@@ -19,23 +20,24 @@ const steps = [
   {
     icon: Trophy,
     title: "Азын сугалаанд оролцоно",
-    description: "Баталгаажсан баримт азын сугалаанд оролцох эрхтэй болно",
+    description: "Баталгаажсан баримтын дагуу сугалааны эрх тооцогдоно",
   },
 ];
 
 export default function HowToJoin() {
   return (
-    <section id="how-to-join" className="py-20 lg:py-28 relative">
-      <div className="absolute inset-0 bg-wine-red/20" />
-      <div className="absolute inset-0 coffee-texture opacity-20" />
+    <section id="how-to-join" className="py-20 lg:py-28 relative section-tint">
+      <div className="absolute inset-0 bg-wine-red/10" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-gold-light">
             ХЭРХЭН ОРОЛЦОХ ВЭ?
           </h2>
           <div className="w-24 h-1 bg-gold-gradient mx-auto mt-4 rounded-full" />
         </div>
+
+        <ParticipationRules className="mb-16" />
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {steps.map((step, index) => (

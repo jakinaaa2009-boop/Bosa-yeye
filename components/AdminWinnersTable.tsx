@@ -5,6 +5,7 @@ import { Trophy, Trash2 } from "lucide-react";
 import Button from "./Button";
 import { formatDateTime, maskPhone, formatCurrency } from "@/lib/utils";
 import { getPrizeTypeLabel, getWinnerPrizeValue } from "@/lib/prize-pool";
+import CarModelText from "./CarModelText";
 
 interface WinnerRow {
   _id: string;
@@ -137,11 +138,13 @@ export default function AdminWinnersTable() {
                   {getPrizeTypeLabel(winner.prizeType)}
                 </td>
                 <td className="px-4 py-3 text-cream text-sm">
-                  {winner.prizeType === "car"
-                    ? winner.carModel || "BAIC X55"
-                    : winner.prizeAmount
-                      ? formatCurrency(winner.prizeAmount)
-                      : getWinnerPrizeValue(winner)}
+                  {winner.prizeType === "car" ? (
+                    <CarModelText className="text-sm text-cream" />
+                  ) : winner.prizeAmount ? (
+                    formatCurrency(winner.prizeAmount)
+                  ) : (
+                    getWinnerPrizeValue(winner)
+                  )}
                 </td>
                 <td className="px-4 py-3 text-cream/50 text-sm">
                   {formatDateTime(winner.drawDate)}

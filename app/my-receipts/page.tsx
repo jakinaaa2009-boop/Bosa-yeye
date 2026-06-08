@@ -27,7 +27,6 @@ export default function MyReceiptsPage() {
 
   return (
     <div className="min-h-screen pt-24 pb-16 relative">
-      <div className="absolute inset-0 coffee-texture opacity-30" />
       <div className="relative max-w-5xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="font-display text-3xl text-gold-light font-bold">

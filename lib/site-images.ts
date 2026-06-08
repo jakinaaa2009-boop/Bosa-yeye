@@ -19,6 +19,11 @@ export const SITE_IMAGES = {
     coffee2: "/images/Coffee2.png",
     coffee3: "/images/Coffee3.png",
   },
+  cashPrizes: {
+    oneMillion: "/images/1,000,000.jpg",
+    fiveHundredThousand: "/images/500,000.jpg",
+    oneHundredThousand: "/images/100,000.jpg",
+  },
 } as const;
 
 export const PRODUCT_GALLERY = [

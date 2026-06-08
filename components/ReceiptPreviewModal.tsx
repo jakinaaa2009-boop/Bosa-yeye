@@ -5,6 +5,7 @@ import StatusBadge from "./StatusBadge";
 import Button from "./Button";
 import Input from "./Input";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { PARTICIPATION_RULES } from "@/lib/site-content";
 import { useState } from "react";
 
 interface ReceiptUser {
@@ -102,6 +103,9 @@ export default function ReceiptPreviewModal({
 
           {receipt.status === "pending" && (
             <div className="space-y-4 pt-4 border-t border-gold/20">
+              <p className="text-cream/50 text-xs leading-relaxed">
+                {PARTICIPATION_RULES.adminNote}
+              </p>
               {showRejectInput && (
                 <Input
                   label="Татгалзах шалтгаан (заавал биш)"

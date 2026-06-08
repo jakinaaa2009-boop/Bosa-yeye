@@ -1,18 +1,19 @@
 import { DollarSign, Trophy, Users } from "lucide-react";
 import SiteImage from "@/components/SiteImage";
 import ProductShowcase from "@/components/ProductShowcase";
+import CarModelText from "@/components/CarModelText";
+import ParticipationRules from "@/components/ParticipationRules";
 import {
   PRIZE_POOL_TOTAL,
   PRIZE_TABLE_ROWS,
 } from "@/lib/prize-pool";
+import { SUPER_PRIZE } from "@/lib/site-content";
 import { SITE_IMAGES } from "@/lib/site-images";
 import { formatCurrency } from "@/lib/utils";
 
 export default function PrizesPage() {
   return (
     <div className="min-h-screen pt-24 pb-16 relative">
-      <div className="absolute inset-0 coffee-texture opacity-30" />
-
       <div className="relative max-w-5xl mx-auto px-4">
         <div className="text-center mb-10">
           <h1 className="font-display text-3xl sm:text-4xl text-gold-light font-bold">
@@ -21,10 +22,14 @@ export default function PrizesPage() {
           <div className="w-24 h-1 bg-gold-gradient mx-auto mt-4 rounded-full" />
         </div>
 
+        <div className="mb-10">
+          <ParticipationRules />
+        </div>
+
         <div className="relative rounded-2xl overflow-hidden border border-gold/40 shadow-gold-lg mb-10 aspect-[21/9] min-h-[180px]">
           <SiteImage
             src={SITE_IMAGES.car.banner}
-            alt={`${PRIZE_POOL_TOTAL.carModel} супер шагнал`}
+            alt={`${SUPER_PRIZE.model} супер шагнал`}
             fill
             className="object-cover object-center"
             priority
@@ -33,12 +38,18 @@ export default function PrizesPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-coffee-dark/90 via-coffee-dark/50 to-transparent" />
           <div className="absolute inset-0 flex flex-col justify-center p-6 sm:p-10">
             <p className="text-gold text-sm font-bold tracking-widest uppercase">
-              Супер шагнал
+              {SUPER_PRIZE.badge}
             </p>
-            <h2 className="font-display text-2xl sm:text-4xl text-cream font-bold mt-1">
-              {PRIZE_POOL_TOTAL.carModel}
+            <p className="text-gold text-sm font-bold tracking-widest uppercase mt-1">
+              {SUPER_PRIZE.title}
+            </p>
+            <h2 className="mt-2">
+              <CarModelText className="text-2xl sm:text-4xl text-cream" />
             </h2>
-            <p className="text-gold-light text-lg sm:text-xl mt-2">
+            <p className="text-cream/80 text-sm sm:text-base mt-2 max-w-md leading-relaxed">
+              {SUPER_PRIZE.subtext}
+            </p>
+            <p className="text-gold-light text-base sm:text-lg mt-3">
               + {formatCurrency(PRIZE_POOL_TOTAL.cashPoolAmount)} мөнгөн шагнал
             </p>
           </div>
@@ -49,15 +60,18 @@ export default function PrizesPage() {
             <div className="relative w-16 h-12 rounded-lg overflow-hidden shrink-0 border border-gold/30">
               <SiteImage
                 src={SITE_IMAGES.car.main}
-                alt={PRIZE_POOL_TOTAL.carModel}
+                alt={SUPER_PRIZE.model}
                 fill
                 className="object-cover"
                 sizes="64px"
               />
             </div>
             <div>
-              <p className="text-cream/50 text-xs">Супер шагнал</p>
-              <p className="text-cream font-bold">{PRIZE_POOL_TOTAL.carModel}</p>
+              <p className="text-cream/50 text-xs">{SUPER_PRIZE.badge}</p>
+              <CarModelText className="text-cream text-base" />
+              <p className="text-cream/55 text-xs mt-1 leading-snug">
+                {SUPER_PRIZE.subtext}
+              </p>
             </div>
           </div>
           <div className="bg-card-gradient rounded-2xl border border-gold/30 p-5 flex items-center gap-4">
@@ -114,7 +128,13 @@ export default function PrizesPage() {
                   <td className="px-4 py-4 text-cream/70 text-sm">
                     {row.winners}
                   </td>
-                  <td className="px-4 py-4 text-gold text-sm">{row.perWinner}</td>
+                  <td className="px-4 py-4 text-gold text-sm">
+                    {row.name === "Супер азтан" ? (
+                      <CarModelText />
+                    ) : (
+                      row.perWinner
+                    )}
+                  </td>
                   <td className="px-4 py-4 text-gold-light font-semibold text-sm">
                     {row.total}
                   </td>
@@ -126,9 +146,11 @@ export default function PrizesPage() {
 
         <div className="bg-gradient-to-r from-wine-red/40 to-deep-red/40 rounded-2xl border border-gold/40 p-6 text-center mb-16">
           <Trophy className="w-8 h-8 text-gold mx-auto mb-3" />
-          <p className="text-cream font-display text-lg font-bold">
-            Нийт: {PRIZE_POOL_TOTAL.carModel} автомашин +{" "}
-            {formatCurrency(PRIZE_POOL_TOTAL.cashPoolAmount)} мөнгөн шагнал
+          <p className="text-cream font-display text-lg font-bold flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+            <span>Нийт:</span>
+            <CarModelText className="text-lg text-cream" />
+            <span>автомашин +</span>
+            <span>{formatCurrency(PRIZE_POOL_TOTAL.cashPoolAmount)} мөнгөн шагнал</span>
           </p>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ReceiptUploadForm from "@/components/ReceiptUploadForm";
+import ParticipationRules from "@/components/ParticipationRules";
 import { useAuth } from "@/lib/auth-context";
 
 export default function UploadReceiptPage() {
@@ -27,7 +28,6 @@ export default function UploadReceiptPage() {
 
   return (
     <div className="min-h-screen pt-24 pb-16 relative">
-      <div className="absolute inset-0 coffee-texture opacity-30" />
       <div className="relative max-w-lg mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="font-display text-3xl text-gold-light font-bold">
@@ -38,7 +38,8 @@ export default function UploadReceiptPage() {
           </p>
         </div>
 
-        <div className="bg-card-gradient rounded-2xl border border-gold/35 shadow-gold p-8">
+        <div className="bg-card-gradient rounded-2xl border border-gold/35 shadow-gold p-8 space-y-6">
+          <ParticipationRules variant="note" />
           <ReceiptUploadForm />
         </div>
       </div>

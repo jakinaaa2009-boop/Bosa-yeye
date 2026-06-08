@@ -1,6 +1,8 @@
 "use client";
 
 import { PRIZE_POOL_TOTAL } from "@/lib/prize-pool";
+import { SUPER_PRIZE } from "@/lib/site-content";
+import CarModelText from "./CarModelText";
 
 interface PrizeSummary {
   _id: string;
@@ -32,26 +34,33 @@ export default function AdminPrizePoolSummary({
 
       <div className="space-y-3 mb-6">
         {prizes.map((prize) => {
-          let label = "";
-          if (prize.type === "car") {
-            label = `${prize.carModel || "BAIC X55"}: ${prize.quantity}-ээс ${prize.remainingQuantity} үлдсэн`;
-          } else if (prize.amount === 1_000_000) {
-            label = `1,000,000₮: ${prize.quantity}-аас ${prize.remainingQuantity} үлдсэн`;
-          } else if (prize.amount === 500_000) {
-            label = `500,000₮: ${prize.quantity}-аас ${prize.remainingQuantity} үлдсэн`;
-          } else if (prize.amount === 100_000) {
-            label = `100,000₮: ${prize.quantity}-ээс ${prize.remainingQuantity} үлдсэн`;
-          } else {
-            label = `${prize.name}: ${prize.quantity}-аас ${prize.remainingQuantity} үлдсэн`;
-          }
+          const exhausted = prize.remainingQuantity === 0;
 
           return (
             <div
               key={prize._id}
-              className="flex items-center justify-between text-sm border-b border-gold/10 pb-2 last:border-0"
+              className="flex items-center justify-between text-sm border-b border-gold/10 pb-2 last:border-0 gap-3"
             >
-              <span className="text-cream/70">{label}</span>
-              {prize.remainingQuantity === 0 && (
+              <span className="text-cream/70">
+                {prize.type === "car" ? (
+                  <>
+                    <CarModelText className="text-sm" />: {prize.quantity}-ээс{" "}
+                    {prize.remainingQuantity} үлдсэн
+                    <span className="block text-cream/45 text-xs mt-0.5">
+                      {SUPER_PRIZE.subtext}
+                    </span>
+                  </>
+                ) : prize.amount === 1_000_000 ? (
+                  `1,000,000₮: ${prize.quantity}-аас ${prize.remainingQuantity} үлдсэн`
+                ) : prize.amount === 500_000 ? (
+                  `500,000₮: ${prize.quantity}-аас ${prize.remainingQuantity} үлдсэн`
+                ) : prize.amount === 100_000 ? (
+                  `100,000₮: ${prize.quantity}-ээс ${prize.remainingQuantity} үлдсэн`
+                ) : (
+                  `${prize.name}: ${prize.quantity}-аас ${prize.remainingQuantity} үлдсэн`
+                )}
+              </span>
+              {exhausted && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-danger/20 text-danger border border-danger/30">
                   Дууссан
                 </span>

@@ -38,7 +38,6 @@ export default async function WinnersPage() {
 
   return (
     <div className="min-h-screen pt-24 pb-16 relative">
-      <div className="absolute inset-0 coffee-texture opacity-30" />
       <div className="relative max-w-5xl mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="font-display text-3xl sm:text-4xl text-gold-light font-bold">
@@ -71,7 +70,13 @@ export default async function WinnersPage() {
                   </div>
                 </div>
                 <p className="text-gold font-medium">{winner.prizeName}</p>
-                <p className="text-gold-light font-bold mt-1">
+                <p
+                  className={
+                    winner.prizeType === "car"
+                      ? "car-model-text text-gold-light font-bold mt-1"
+                      : "text-gold-light font-bold mt-1"
+                  }
+                >
                   {winner.prizeValue}
                 </p>
               </div>

@@ -3,8 +3,7 @@ import { PRODUCT_GALLERY } from "@/lib/site-images";
 
 export default function ProductShowcase() {
   return (
-    <section className="py-16 lg:py-20 relative bg-coffee-brown/30">
-      <div className="absolute inset-0 coffee-texture opacity-20" />
+    <section className="py-16 lg:py-20 relative section-tint">
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">

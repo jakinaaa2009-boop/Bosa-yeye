@@ -111,7 +111,7 @@ export default function AdminSidebar() {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 bottom-0 w-64 bg-coffee-dark border-r border-gold/20 z-50 flex flex-col transition-transform duration-300",
+          "fixed left-0 top-0 bottom-0 w-64 bg-coffee-dark/85 backdrop-blur-md border-r border-gold/20 z-50 flex flex-col transition-transform duration-300",
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >

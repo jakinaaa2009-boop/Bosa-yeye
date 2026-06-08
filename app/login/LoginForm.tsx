@@ -61,7 +61,7 @@ export default function LoginForm() {
 
   if (loading || user) {
     return (
-      <div className="flex flex-1 items-center justify-center min-h-[calc(100dvh-5rem)] bg-coffee-dark">
+      <div className="flex flex-1 items-center justify-center min-h-[calc(100dvh-5rem)]">
         <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
       </div>
     );

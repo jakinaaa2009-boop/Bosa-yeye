@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Phone, Mail, Globe, MapPin } from "lucide-react";
+import { Phone, MapPin } from "lucide-react";
 import SiteLogo from "./SiteLogo";
+import ParticipationRules from "./ParticipationRules";
+import { CONTACT } from "@/lib/site-content";
 
 export default function Footer() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
   if (pathname === "/login" || pathname === "/register") return null;
   return (
-    <footer className="bg-coffee-dark border-t border-gold/20 relative">
-      <div className="absolute inset-0 coffee-texture opacity-20" />
+    <footer className="border-t border-gold/20 relative section-tint">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
@@ -21,9 +22,10 @@ export default function Footer() {
                 <SiteLogo variant="bosa" className="h-5 w-auto max-w-[96px]" />
               </span>
             </div>
-            <p className="text-cream/50 text-sm leading-relaxed">
+            <p className="text-cream/50 text-sm leading-relaxed mb-4">
               YE YE 3 in 1 Instant Coffee Mix — Азын сугалааны кампанит ажил
             </p>
+            <ParticipationRules variant="compact" />
           </div>
 
           <div>
@@ -64,19 +66,19 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-cream/60 text-sm">
                 <Phone className="w-4 h-4 text-gold shrink-0" />
-                8005-8283
-              </li>
-              <li className="flex items-center gap-2 text-cream/60 text-sm">
-                <Mail className="w-4 h-4 text-gold shrink-0" />
-                info@yeyecoffee.mn
-              </li>
-              <li className="flex items-center gap-2 text-cream/60 text-sm">
-                <Globe className="w-4 h-4 text-gold shrink-0" />
-                www.yeyecoffee.mn
+                Утас: {CONTACT.phone}
               </li>
               <li className="flex items-start gap-2 text-cream/60 text-sm">
                 <MapPin className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-                Улаанбаатар хот, Монгол Улс
+                <span>
+                  Хаяг 1: {CONTACT.address1}
+                  <br />
+                  <br />
+                  Хаяг 2: {CONTACT.address2}
+                  <br />
+                  <br />
+                  {CONTACT.city}
+                </span>
               </li>
             </ul>
           </div>

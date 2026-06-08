@@ -2,8 +2,10 @@
 
 import { Trophy } from "lucide-react";
 import Button from "./Button";
+import CarModelText from "./CarModelText";
 import { maskPhone } from "@/lib/utils";
 import { getPrizeTypeLabel, getWinnerPrizeValue } from "@/lib/prize-pool";
+import { SUPER_PRIZE } from "@/lib/site-content";
 
 interface WinnerData {
   receiptNumber: string;
@@ -28,7 +30,12 @@ export default function WinnerPopup({
   onClose,
   onConfirm,
 }: WinnerPopupProps) {
-  const prizeValue = getWinnerPrizeValue(winner);
+  const isCarPrize = winner.prizeType === "car";
+  const prizeValue = isCarPrize ? (
+    <CarModelText className="text-lg text-gold" />
+  ) : (
+    getWinnerPrizeValue(winner)
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -69,9 +76,14 @@ export default function WinnerPopup({
             </div>
             <div>
               <p className="text-cream/50 text-xs">
-                {winner.prizeType === "car" ? "Машины загвар" : "Шагналын дүн"}
+                {isCarPrize ? "Машины загвар" : "Шагналын дүн"}
               </p>
               <p className="text-gold font-bold text-lg">{prizeValue}</p>
+              {isCarPrize && (
+                <p className="text-cream/70 text-sm mt-2 leading-relaxed">
+                  {SUPER_PRIZE.subtext}
+                </p>
+              )}
             </div>
           </div>
 

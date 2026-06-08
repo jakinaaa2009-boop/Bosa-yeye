@@ -1,5 +1,6 @@
-import { DollarSign, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import SiteImage from "./SiteImage";
+import CarModelText from "./CarModelText";
 import { PRIZE_POOL_DISPLAY, PRIZE_POOL_TOTAL } from "@/lib/prize-pool";
 import { SITE_IMAGES } from "@/lib/site-images";
 import { formatCurrency } from "@/lib/utils";
@@ -8,9 +9,8 @@ export default function PrizeSection() {
   const [superPrize, ...cashPrizes] = PRIZE_POOL_DISPLAY;
 
   return (
-    <section id="prizes" className="py-20 lg:py-28 relative bg-coffee-dark">
-      <div className="absolute inset-0 coffee-texture opacity-30" />
-      <div className="absolute inset-0 bg-hero-gradient opacity-30" />
+    <section id="prizes" className="py-20 lg:py-28 relative section-tint">
+      <div className="absolute inset-0 bg-hero-gradient opacity-20" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
@@ -19,7 +19,8 @@ export default function PrizeSection() {
           </h2>
           <div className="w-24 h-1 bg-gold-gradient mx-auto mt-4 rounded-full" />
           <p className="text-cream/70 text-base sm:text-lg mt-6 max-w-3xl mx-auto leading-relaxed">
-            YE YE кофе худалдан авч баримтаа бүртгүүлээд BAIC X55 автомашин
+            YE YE кофе худалдан авч баримтаа бүртгүүлээд{" "}
+            <CarModelText className="text-gold-light text-base sm:text-lg" />{" "}
             болон нийт {formatCurrency(PRIZE_POOL_TOTAL.cashPoolAmount)}-ийн
             мөнгөн шагналын эзэн болоорой.
           </p>
@@ -46,26 +47,52 @@ export default function PrizeSection() {
               <p className="text-gold text-sm font-bold tracking-wider uppercase">
                 {superPrize.title}
               </p>
-              <h3 className="font-display text-2xl text-cream font-bold mt-1">
-                {superPrize.prize}
+              <h3 className="mt-1">
+                <CarModelText className="text-2xl text-cream" />
               </h3>
-              <p className="text-cream/60 text-sm mt-2">{superPrize.description}</p>
+              <p className="text-cream/70 text-sm mt-2 leading-relaxed">
+                {superPrize.description}
+              </p>
             </div>
           </div>
 
-          {cashPrizes.map((prize) => (
-            <div
-              key={prize.title}
-              className="bg-card-gradient rounded-2xl border border-gold/30 p-6 shadow-card hover:shadow-gold transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className="w-14 h-14 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center mb-4">
-                <DollarSign className="w-7 h-7 text-gold" />
+          {cashPrizes.map((prize) => {
+            const imageSrc =
+              "imageKey" in prize
+                ? SITE_IMAGES.cashPrizes[
+                    prize.imageKey as keyof typeof SITE_IMAGES.cashPrizes
+                  ]
+                : null;
+
+            return (
+              <div
+                key={prize.title}
+                className="bg-card-gradient rounded-2xl border border-gold/30 shadow-card hover:shadow-gold transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+              >
+                {imageSrc && (
+                  <div className="relative aspect-[4/3] w-full bg-coffee-dark/40">
+                    <SiteImage
+                      src={imageSrc}
+                      alt={`${prize.title} шагнал`}
+                      fill
+                      className="object-cover object-center"
+                      sizes="(max-width: 1024px) 50vw, 280px"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-coffee-dark/80 via-transparent to-transparent" />
+                  </div>
+                )}
+                <div className="p-5">
+                  <p className="text-gold-light text-2xl font-bold">
+                    {prize.title}
+                  </p>
+                  <p className="text-cream font-semibold mt-2">{prize.prize}</p>
+                  <p className="text-cream/50 text-sm mt-2">
+                    {prize.description}
+                  </p>
+                </div>
               </div>
-              <p className="text-gold-light text-2xl font-bold">{prize.title}</p>
-              <p className="text-cream font-semibold mt-2">{prize.prize}</p>
-              <p className="text-cream/50 text-sm mt-2">{prize.description}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
