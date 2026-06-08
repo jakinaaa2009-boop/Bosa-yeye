@@ -27,8 +27,7 @@ export const SITE_IMAGES = {
     oneHundredThousand: "/images/100,000.jpg",
   },
   hero: {
-    product: "/images/Coffee2.png",
-    car: "/images/baic.png",
+    showcase: "/images/asd.jpg",
   },
 } as const;
 

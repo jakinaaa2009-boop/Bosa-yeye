@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Button from "./Button";
 import SiteImage from "./SiteImage";
-import CarModelText from "./CarModelText";
 import { SITE_IMAGES } from "@/lib/site-images";
 
 const HERO_PRIZES = [
@@ -54,37 +53,17 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Right visual — car + coffee side composition */}
+          {/* Right visual — car + coffee composite */}
           <div className="hero-showcase z-40">
-            <div className="hero-showcase-glow" aria-hidden />
-
-            <div className="hero-showcase-car">
+            <div className="hero-showcase-stage">
               <SiteImage
-                src={SITE_IMAGES.hero.car}
-                alt="BAIC X55"
+                src={SITE_IMAGES.hero.showcase}
+                alt="BAIC X55 болон YE YE 3 in 1 Instant Coffee Mix"
                 fill
                 priority
-                className="object-contain object-center lg:object-right"
-                sizes="(max-width: 1024px) 75vw, 480px"
+                className="hero-showcase-img"
+                sizes="(max-width: 1024px) 90vw, 560px"
               />
-            </div>
-
-            <div className="hero-showcase-coffee">
-              <SiteImage
-                src={SITE_IMAGES.hero.product}
-                alt="YE YE 3 in 1 Instant Coffee Mix"
-                fill
-                priority
-                className="object-contain object-bottom"
-                sizes="(max-width: 1024px) 35vw, 200px"
-              />
-            </div>
-
-            <div className="hero-showcase-label">
-              <CarModelText className="block text-xl sm:text-2xl text-[#F8EBC8] tracking-[0.08em]" />
-              <p className="text-[#F8EBC8] text-base sm:text-lg font-bold mt-1 tracking-wide">
-                69,800,000₮
-              </p>
             </div>
           </div>
         </div>

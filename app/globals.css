@@ -132,98 +132,47 @@
   }
 
   .hero-showcase {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0;
     width: 100%;
-    min-height: 300px;
     margin-left: auto;
     margin-right: auto;
-    padding-top: 2.5rem;
-  }
-
-  @media (min-width: 640px) {
-    .hero-showcase {
-      flex-direction: row;
-      align-items: flex-end;
-      justify-content: center;
-      min-height: 360px;
-      gap: 0.75rem;
-      padding-top: 3rem;
-    }
   }
 
   @media (min-width: 1024px) {
     .hero-showcase {
-      min-height: 400px;
-      justify-content: flex-end;
       margin-right: 0;
     }
   }
 
-  .hero-showcase-glow {
-    position: absolute;
-    top: 15%;
-    left: 10%;
-    right: 5%;
-    bottom: 10%;
-    background: radial-gradient(
-      ellipse at 60% 50%,
-      rgba(229, 199, 107, 0.22) 0%,
-      transparent 65%
-    );
-    filter: blur(32px);
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .hero-showcase-car {
+  .hero-showcase-stage {
     position: relative;
-    flex: 1 1 auto;
     width: 100%;
-    max-width: 520px;
-    height: clamp(220px, 42vw, 380px);
-    z-index: 1;
-    filter: drop-shadow(0 24px 40px rgba(0, 0, 0, 0.45));
-  }
-
-  .hero-showcase-coffee {
-    position: relative;
-    flex: 0 0 auto;
-    width: clamp(120px, 32vw, 160px);
-    height: clamp(155px, 40vw, 210px);
-    margin-top: -1.5rem;
-    z-index: 2;
-    filter: drop-shadow(0 20px 32px rgba(0, 0, 0, 0.5));
+    max-width: 560px;
+    aspect-ratio: 16 / 10;
+    min-height: 260px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
   }
 
   @media (min-width: 640px) {
-    .hero-showcase-coffee {
-      width: clamp(130px, 22vw, 190px);
-      height: clamp(170px, 30vw, 250px);
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-      margin-left: -2.5rem;
+    .hero-showcase-stage {
+      min-height: 320px;
     }
   }
 
   @media (min-width: 1024px) {
-    .hero-showcase-coffee {
-      margin-left: -3.5rem;
-      width: 200px;
-      height: 265px;
+    .hero-showcase-stage {
+      margin-right: 0;
+      max-width: 100%;
+      min-height: 360px;
     }
   }
 
-  .hero-showcase-label {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 3;
-    text-align: right;
+  .hero-showcase-img {
+    object-fit: cover;
+    object-position: center;
   }
 
   .hero-headline {
