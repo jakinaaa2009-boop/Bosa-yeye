@@ -6,8 +6,10 @@ export function encodeImagePath(path: string): string {
 
 export const SITE_IMAGES = {
   logos: {
-    bosa: "/images/logo1.png",
-    yeye: "/images/logo2.png",
+    yeye: "/images/logo3.png",
+    bosa: "/images/logo4.png",
+    yeyeProduct: "/images/logo2.png",
+    bosaLegacy: "/images/logo1.png",
   },
   car: {
     main: "/images/baic.png",
@@ -24,6 +26,10 @@ export const SITE_IMAGES = {
     fiveHundredThousand: "/images/500,000.jpg",
     oneHundredThousand: "/images/100,000.jpg",
   },
+  hero: {
+    product: "/images/Coffee2.png",
+    car: "/images/baic.png",
+  },
 } as const;
 
 export const PRODUCT_GALLERY = [
@@ -33,13 +39,13 @@ export const PRODUCT_GALLERY = [
     label: "YE YE Original Sachet",
   },
   {
-    src: SITE_IMAGES.products.coffee2,
-    alt: "YE YE Original 50s — урд тал",
-    label: "YE YE Original 50s",
-  },
-  {
     src: SITE_IMAGES.products.coffee1,
     alt: "YE YE Rich 45s Sachet — урд тал",
     label: "YE YE Rich 45s",
+  },
+  {
+    src: SITE_IMAGES.products.coffee2,
+    alt: "YE YE Original 50s — урд тал",
+    label: "YE YE Original 50s",
   },
 ] as const;

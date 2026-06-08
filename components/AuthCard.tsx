@@ -36,7 +36,7 @@ export default function AuthCard({
         <div className="relative p-8 sm:p-10">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center mb-5">
-              <SiteLogo variant="yeye" className="h-20 w-auto drop-shadow-[0_4px_20px_rgba(214,168,79,0.25)]" />
+              <SiteLogo variant="yeye" className="h-24 sm:h-28 w-auto max-w-[160px] drop-shadow-[0_4px_20px_rgba(214,168,79,0.25)]" />
             </div>
             <h1 className="font-display text-2xl sm:text-[1.65rem] text-gold-light font-bold tracking-tight">
               {title}

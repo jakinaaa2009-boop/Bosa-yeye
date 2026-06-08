@@ -10,9 +10,9 @@ const LOGO_META: Record<
 > = {
   yeye: {
     src: SITE_IMAGES.logos.yeye,
-    alt: "YE YE 3 in 1 Instant Coffee Mix",
-    width: 160,
-    height: 200,
+    alt: "YE YE Coffee",
+    width: 140,
+    height: 110,
   },
   bosa: {
     src: SITE_IMAGES.logos.bosa,

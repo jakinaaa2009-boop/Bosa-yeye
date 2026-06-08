@@ -9,7 +9,7 @@ export const CONTACT = {
 
 export const PARTICIPATION_RULES = {
   title: "Сугалаанд оролцох эрх",
-  sachetProduct: "5 ширхэг саше кофе",
+  sachetProduct: "5 ширхэг кофе",
   sachetEntries: "1 сугалааны эрх",
   bagProduct: "1 уут кофе",
   bagEntries: "10 сугалааны эрх",

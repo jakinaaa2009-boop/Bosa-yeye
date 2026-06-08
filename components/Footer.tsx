@@ -17,7 +17,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <SiteLogo variant="yeye" className="h-10 w-auto max-w-[36px]" />
+              <SiteLogo variant="yeye" className="h-12 w-auto max-w-[88px]" />
               <span className="inline-flex items-center px-2 py-1 rounded-md bg-white/95">
                 <SiteLogo variant="bosa" className="h-5 w-auto max-w-[96px]" />
               </span>
@@ -33,7 +33,7 @@ export default function Footer() {
             <ul className="space-y-2">
               {[
                 { href: "/#how-to-join", label: "Хэрхэн оролцох вэ?" },
-                { href: "/prizes", label: "Шагналууд" },
+                { href: "/#prizes", label: "Шагналууд" },
                 { href: "/winners", label: "Ялагчид" },
                 { href: "/my-receipts", label: "Миний баримтууд" },
               ].map((link) => (

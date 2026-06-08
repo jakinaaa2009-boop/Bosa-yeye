@@ -2,81 +2,102 @@ import Link from "next/link";
 import Button from "./Button";
 import SiteImage from "./SiteImage";
 import CarModelText from "./CarModelText";
-import ParticipationRules from "./ParticipationRules";
-import { PRIZE_POOL_TOTAL } from "@/lib/prize-pool";
-import { SUPER_PRIZE } from "@/lib/site-content";
 import { SITE_IMAGES } from "@/lib/site-images";
+
+const HERO_PRIZES = [
+  { amount: "1,000,000₮", winners: "3 АЗТАН" },
+  { amount: "500,000₮", winners: "6 АЗТАН" },
+  { amount: "100,000₮", winners: "90 АЗТАН" },
+] as const;
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-      <div className="absolute inset-0 bg-hero-gradient opacity-50" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gold/[0.06] rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-deep-red/[0.08] rounded-full blur-3xl" />
-      <div className="absolute top-[18%] right-[12%] w-24 h-48 bg-cream/[0.03] rounded-full blur-2xl rotate-12" />
+    <section className="hero-banner relative min-h-[720px] overflow-x-clip overflow-y-visible pt-20 pb-4 lg:pb-20">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(18,11,8,0.55)_72%,#120B08_100%)] pointer-events-none z-[1]" />
+      <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(circle,#F8EBC8_1px,transparent_1px)] bg-[length:24px_24px] pointer-events-none z-[1]" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div className="space-y-8">
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-              <span className="text-cream">YE YE кофе худалдан авч,</span>
+      <div className="relative z-[2] max-w-7xl mx-auto px-6 lg:px-10 pb-12 lg:pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-8 items-center min-h-[560px] lg:min-h-[620px]">
+          {/* Left content */}
+          <div className="flex flex-col justify-center space-y-8 lg:pr-6 z-40">
+            <h1 className="hero-headline">
+              Танил YeYe,
               <br />
-              <span className="text-gold-light inline-flex flex-wrap items-baseline gap-x-2">
-                <CarModelText className="text-4xl sm:text-5xl lg:text-6xl text-gold-light" />
-                <span className="whitespace-normal">автомашины эзэн болоорой!</span>
-              </span>
+              Танд машин
+              <br />
+              бэлэглэнэ
             </h1>
 
-            <p className="text-cream/70 text-lg leading-relaxed max-w-lg">
-              {SUPER_PRIZE.subtext}. Мөн нийт{" "}
-              {PRIZE_POOL_TOTAL.totalWinners} азтаны нэг болох боломжтой.
+            <p className="text-[#B8AEA3] text-lg leading-[1.6] max-w-[520px]">
+              Баримтаа бүртгүүлээд супер азтан болон мөнгөн шагналын 100
+              азтаны нэг болох боломжтой.
             </p>
 
-            <ParticipationRules className="max-w-2xl" />
-
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/upload-receipt">
-                <Button size="lg" className="w-full sm:w-auto">
+              <Link href="/upload-receipt" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  className="w-full sm:w-auto px-8 py-[18px] rounded-xl hover:shadow-[0_0_30px_rgba(214,168,79,0.45)] transition-shadow duration-300"
+                >
                   Баримт бүртгүүлэх
                 </Button>
               </Link>
-              <Link href="/prizes">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
+              <Link href="/#prizes" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto px-8 py-[18px] rounded-xl bg-white/5 border-[#F8EBC8]/25 text-[#F8EBC8] hover:border-[#E5C76B] hover:bg-white/[0.08] transition-all duration-300"
+                >
                   Шагналын сан харах
                 </Button>
               </Link>
             </div>
           </div>
 
-          <div className="relative space-y-4">
-            <div className="relative bg-card-gradient rounded-2xl border border-gold/35 shadow-gold-lg p-6 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full blur-2xl" />
-              <div className="relative aspect-square max-w-sm mx-auto rounded-xl overflow-hidden bg-coffee-brown/30">
-                <SiteImage
-                  src={SITE_IMAGES.products.coffee2}
-                  alt="YE YE 3 in 1 Instant Coffee Mix"
-                  fill
-                  className="object-contain p-4"
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 400px"
-                />
-              </div>
+          {/* Right visual — car + coffee side composition */}
+          <div className="hero-showcase z-40">
+            <div className="hero-showcase-glow" aria-hidden />
+
+            <div className="hero-showcase-car">
+              <SiteImage
+                src={SITE_IMAGES.hero.car}
+                alt="BAIC X55"
+                fill
+                priority
+                className="object-contain object-center lg:object-right"
+                sizes="(max-width: 1024px) 75vw, 480px"
+              />
             </div>
 
-            <div className="bg-gradient-to-br from-wine-red/90 to-deep-red/90 rounded-2xl border border-gold/40 shadow-gold p-5 text-center">
-              <span className="inline-block px-3 py-1 rounded-full bg-gold/20 border border-gold/40 text-gold text-xs font-bold mb-3">
-                {SUPER_PRIZE.badge}
-              </span>
-              <p className="text-gold text-sm font-bold tracking-widest uppercase">
-                {SUPER_PRIZE.title}
-              </p>
-              <p className="mt-2">
-                <CarModelText className="text-2xl sm:text-3xl text-cream" />
-              </p>
-              <p className="text-cream/75 text-sm mt-2 leading-relaxed">
-                {SUPER_PRIZE.subtext}
+            <div className="hero-showcase-coffee">
+              <SiteImage
+                src={SITE_IMAGES.hero.product}
+                alt="YE YE 3 in 1 Instant Coffee Mix"
+                fill
+                priority
+                className="object-contain object-bottom"
+                sizes="(max-width: 1024px) 35vw, 200px"
+              />
+            </div>
+
+            <div className="hero-showcase-label">
+              <CarModelText className="block text-xl sm:text-2xl text-[#F8EBC8] tracking-[0.08em]" />
+              <p className="text-[#F8EBC8] text-base sm:text-lg font-bold mt-1 tracking-wide">
+                69,800,000₮
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Cash prize summary — full-width strip below hero visual */}
+        <div className="relative z-50 mt-10 lg:mt-0 lg:absolute lg:bottom-6 lg:left-1/2 lg:right-0 lg:px-10">
+          <div className="hero-prize-strip">
+            {HERO_PRIZES.map((prize) => (
+              <div key={prize.amount} className="hero-prize-item">
+                <p className="hero-prize-amount">{prize.amount}</p>
+                <p className="hero-prize-winners">{prize.winners}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

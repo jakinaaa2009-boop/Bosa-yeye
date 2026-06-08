@@ -5,8 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, LogOut } from "lucide-react";
 import Button from "./Button";
-import SiteImage from "./SiteImage";
-import { SITE_IMAGES } from "@/lib/site-images";
+import SiteLogo from "./SiteLogo";
 import { useAuth, type AuthUser } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +17,7 @@ interface NavLink {
 const publicLinks: NavLink[] = [
   { href: "/", label: "Нүүр" },
   { href: "/#how-to-join", label: "Хэрхэн оролцох вэ?" },
-  { href: "/prizes", label: "Шагналын сан" },
+  { href: "/#prizes", label: "Шагналын сан" },
   { href: "/winners", label: "Ялагчид" },
 ];
 
@@ -33,7 +32,7 @@ function getNavLinks(user: AuthUser | null): NavLink[] {
   if (user.role === "admin") {
     return [
       { href: "/", label: "Нүүр" },
-      { href: "/prizes", label: "Шагналын сан" },
+      { href: "/#prizes", label: "Шагналын сан" },
       { href: "/winners", label: "Ялагчид" },
       { href: "/admin/dashboard", label: "Admin Panel" },
     ];
@@ -74,27 +73,19 @@ export default function Header() {
             href="/"
             className="flex items-center gap-2 sm:gap-2.5 shrink-0 min-w-0"
           >
-            <div className="relative h-9 w-8 sm:h-10 sm:w-9 shrink-0">
-              <SiteImage
-                src={SITE_IMAGES.logos.yeye}
-                alt="YE YE"
-                fill
-                className="object-contain object-left"
-                priority
-                sizes="36px"
-              />
-            </div>
+            <SiteLogo
+              variant="yeye"
+              priority
+              className="h-10 sm:h-11 w-auto max-w-[80px] shrink-0"
+            />
             <span
               className="hidden sm:block h-7 w-px bg-gold/25 shrink-0"
               aria-hidden
             />
             <span className="hidden sm:flex items-center h-8 px-2 rounded-md bg-white/95 shrink-0">
-              <SiteImage
-                src={SITE_IMAGES.logos.bosa}
-                alt="BOSA IMPEX"
-                width={96}
-                height={28}
-                className="h-[18px] w-auto max-w-[96px] object-contain"
+              <SiteLogo
+                variant="bosa"
+                className="h-[18px] w-auto max-w-[96px]"
               />
             </span>
           </Link>

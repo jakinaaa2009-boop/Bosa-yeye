@@ -9,7 +9,6 @@ import {
   ReceiptText,
   Trophy,
   CircleDot,
-  Gift,
   Settings,
   LogOut,
   Menu,
@@ -24,7 +23,6 @@ const menuItems = [
   { href: "/admin/receipts", label: "Баримтууд", icon: ReceiptText },
   { href: "/admin/winners", label: "Ялагчид", icon: Trophy },
   { href: "/admin/lucky-wheel", label: "Сугалаа", icon: CircleDot },
-  { href: "/prizes", label: "Шагналууд", icon: Gift },
 ];
 
 export default function AdminSidebar() {
@@ -45,7 +43,7 @@ export default function AdminSidebar() {
           className="flex items-center gap-3"
           onClick={() => setOpen(false)}
         >
-          <SiteLogo variant="yeye" className="h-10 w-auto shrink-0" />
+          <SiteLogo variant="yeye" className="h-11 w-auto max-w-[88px] shrink-0" />
           <div>
             <span className="inline-flex items-center px-2 py-1 rounded-md bg-white/95">
               <SiteLogo variant="bosa" className="h-5 w-auto max-w-[110px]" />
