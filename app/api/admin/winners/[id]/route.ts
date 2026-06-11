@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import Winner from "@/models/Winner";
 import Prize from "@/models/Prize";
+import Receipt from "@/models/Receipt";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,12 @@ export async function DELETE(
     }
 
     await Winner.findByIdAndDelete(winner._id);
+
+    if (winner.receiptId) {
+      await Receipt.findByIdAndUpdate(winner.receiptId, {
+        $inc: { usedEntries: -1 },
+      });
+    }
 
     if (winner.prizeId) {
       await Prize.findByIdAndUpdate(winner.prizeId, [

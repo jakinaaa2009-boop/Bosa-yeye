@@ -63,8 +63,8 @@ export default function LuckyWheel() {
         if (data.success) {
           setEligibleCount(data.count);
           setSegments(
-            data.eligibleReceipts.map(
-              (r: { receiptNumber: string }) => r.receiptNumber
+            (data.eligibleTickets || []).map(
+              (t: { receiptNumber: string }) => t.receiptNumber
             )
           );
           setPrizes(data.prizes || []);
@@ -239,7 +239,7 @@ export default function LuckyWheel() {
           </div>
 
           <p className="text-cream/60 text-sm">
-            Оролцох баримт:{" "}
+            Оролцох эрх:{" "}
             <span className="text-gold font-bold">{eligibleCount}</span>
           </p>
         </div>
@@ -280,8 +280,8 @@ export default function LuckyWheel() {
             <ul className="text-cream/60 text-sm space-y-2">
               <li>1. Шагналаа сонгоно уу</li>
               <li>2. SPIN товчийг дарна</li>
-              <li>3. Санамсаргүй баталгаажсан баримт сонгогдоно</li>
-              <li>4. Ялагч автоматаар бүртгэгдэнэ</li>
+              <li>3. Санамсаргүй эрх сонгогдоно</li>
+              <li>4. Ялагчийн эрх 1-ээр хасагдана</li>
             </ul>
           </div>
 

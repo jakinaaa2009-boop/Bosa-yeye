@@ -9,6 +9,7 @@ import {
   ReceiptText,
   Trophy,
   CircleDot,
+  Ticket,
   Settings,
   LogOut,
   Menu,
@@ -21,6 +22,7 @@ const menuItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/users", label: "Хэрэглэгчид", icon: Users },
   { href: "/admin/receipts", label: "Баримтууд", icon: ReceiptText },
+  { href: "/admin/entries", label: "Эрх", icon: Ticket },
   { href: "/admin/winners", label: "Ялагчид", icon: Trophy },
   { href: "/admin/lucky-wheel", label: "Сугалаа", icon: CircleDot },
 ];

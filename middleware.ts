@@ -7,6 +7,7 @@ const adminRoutes = [
   "/admin/dashboard",
   "/admin/users",
   "/admin/receipts",
+  "/admin/entries",
   "/admin/winners",
   "/admin/lucky-wheel",
 ];
@@ -59,6 +60,7 @@ export const config = {
     "/admin/dashboard/:path*",
     "/admin/users/:path*",
     "/admin/receipts/:path*",
+    "/admin/entries/:path*",
     "/admin/winners/:path*",
     "/admin/lucky-wheel/:path*",
   ],

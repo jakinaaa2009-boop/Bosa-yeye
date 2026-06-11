@@ -6,6 +6,7 @@ import Button from "./Button";
 import Input from "./Input";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { PARTICIPATION_RULES } from "@/lib/site-content";
+import { ENTRY_PRESETS } from "@/lib/lottery-entries";
 import { useState } from "react";
 
 interface ReceiptUser {
@@ -26,7 +27,7 @@ interface Receipt {
 interface ReceiptPreviewModalProps {
   receipt: Receipt;
   onClose: () => void;
-  onApprove: () => void;
+  onApprove: (assignedEntries: number) => void;
   onReject: (reason?: string) => void;
   loading?: boolean;
 }
@@ -40,6 +41,9 @@ export default function ReceiptPreviewModal({
 }: ReceiptPreviewModalProps) {
   const [rejectReason, setRejectReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState(false);
+  const [assignedEntries, setAssignedEntries] = useState(
+    String(ENTRY_PRESETS.sachet)
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -47,7 +51,7 @@ export default function ReceiptPreviewModal({
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-card-gradient rounded-2xl border border-gold/35 shadow-gold-lg">
+      <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-card-gradient rounded-2xl border border-gold/35 shadow-gold-lg">
         <div className="flex items-center justify-between p-6 border-b border-gold/20">
           <h2 className="font-display text-xl text-gold-light font-bold">
             Баримтын дэлгэрэнгүй
@@ -66,7 +70,7 @@ export default function ReceiptPreviewModal({
             <img
               src={receipt.imageUrl}
               alt="Receipt"
-              className="w-full max-h-96 object-contain"
+              className="w-full max-h-[70vh] object-contain"
             />
           </div>
 
@@ -106,6 +110,38 @@ export default function ReceiptPreviewModal({
               <p className="text-cream/50 text-xs leading-relaxed">
                 {PARTICIPATION_RULES.adminNote}
               </p>
+              <div>
+                <p className="text-cream/50 text-xs mb-2">
+                  Сугалааны эрх олгох
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={assignedEntries}
+                    onChange={(e) => setAssignedEntries(e.target.value)}
+                    className="w-28"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAssignedEntries(String(ENTRY_PRESETS.sachet))
+                    }
+                    className="px-3 py-2 rounded-xl text-sm bg-gold/10 text-gold border border-gold/20"
+                  >
+                    1 эрх (5 ширхэг)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAssignedEntries(String(ENTRY_PRESETS.bag))
+                    }
+                    className="px-3 py-2 rounded-xl text-sm bg-gold/10 text-gold border border-gold/20"
+                  >
+                    10 эрх (1 уут)
+                  </button>
+                </div>
+              </div>
               {showRejectInput && (
                 <Input
                   label="Татгалзах шалтгаан (заавал биш)"
@@ -116,7 +152,7 @@ export default function ReceiptPreviewModal({
               )}
               <div className="flex gap-3">
                 <Button
-                  onClick={onApprove}
+                  onClick={() => onApprove(Number(assignedEntries) || 1)}
                   loading={loading}
                   className="flex-1"
                 >

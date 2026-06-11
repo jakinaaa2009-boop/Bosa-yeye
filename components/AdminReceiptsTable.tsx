@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, CheckCircle, XCircle } from "lucide-react";
+import { Eye, CheckCircle, XCircle, Trash2 } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import ReceiptPreviewModal from "./ReceiptPreviewModal";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
@@ -18,6 +18,8 @@ interface Receipt {
   amount: number;
   imageUrl: string;
   status: "pending" | "approved" | "rejected";
+  assignedEntries?: number;
+  usedEntries?: number;
   rejectionReason?: string;
   createdAt: string;
   userId: ReceiptUser;
@@ -36,6 +38,8 @@ export default function AdminReceiptsTable() {
   const [loading, setLoading] = useState(true);
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   const fetchReceipts = () => {
     setLoading(true);
@@ -44,7 +48,7 @@ export default function AdminReceiptsTable() {
         ? "/api/admin/receipts?limit=50"
         : `/api/admin/receipts?status=${filter}&limit=50`;
 
-    fetch(url)
+    fetch(url, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
         if (data.success) setReceipts(data.receipts);
@@ -57,11 +61,13 @@ export default function AdminReceiptsTable() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = async (id: string, assignedEntries = 1) => {
     setActionLoading(true);
     try {
       const res = await fetch(`/api/admin/receipts/${id}/approve`, {
         method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignedEntries }),
       });
       const data = await res.json();
       if (data.success) {
@@ -70,6 +76,38 @@ export default function AdminReceiptsTable() {
       }
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (receipt: Receipt) => {
+    const confirmed = window.confirm(
+      `${receipt.receiptNumber} баримтыг устгах уу? Холбогдсон ялагчийн бүртгэл байвал хамт устгагдана.`
+    );
+    if (!confirmed) return;
+
+    setError("");
+    setDeletingId(receipt._id);
+
+    try {
+      const res = await fetch(`/api/admin/receipts/${receipt._id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        setError(data.message || "Устгахад алдаа гарлаа");
+        return;
+      }
+
+      setReceipts((current) => current.filter((r) => r._id !== receipt._id));
+      if (selectedReceipt?._id === receipt._id) {
+        setSelectedReceipt(null);
+      }
+    } catch {
+      setError("Устгахад алдаа гарлаа");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -110,6 +148,10 @@ export default function AdminReceiptsTable() {
         ))}
       </div>
 
+      {error && (
+        <p className="mb-4 text-danger text-sm">{error}</p>
+      )}
+
       <div className="overflow-x-auto rounded-2xl border border-gold/20">
         <table className="w-full min-w-[900px]">
           <thead>
@@ -120,6 +162,7 @@ export default function AdminReceiptsTable() {
               <th className="px-4 py-3 text-left text-cream/70 text-sm">Email</th>
               <th className="px-4 py-3 text-left text-cream/70 text-sm">Дүн</th>
               <th className="px-4 py-3 text-left text-cream/70 text-sm">Төлөв</th>
+              <th className="px-4 py-3 text-left text-cream/70 text-sm">Эрх</th>
               <th className="px-4 py-3 text-left text-cream/70 text-sm">Огноо</th>
               <th className="px-4 py-3 text-left text-cream/70 text-sm">Үйлдэл</th>
             </tr>
@@ -127,13 +170,13 @@ export default function AdminReceiptsTable() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-cream/50">
+                <td colSpan={9} className="px-4 py-12 text-center text-cream/50">
                   Ачааллаж байна...
                 </td>
               </tr>
             ) : receipts.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-cream/50">
+                <td colSpan={9} className="px-4 py-12 text-center text-cream/50">
                   Баримт олдсонгүй
                 </td>
               </tr>
@@ -144,14 +187,19 @@ export default function AdminReceiptsTable() {
                   className="border-b border-gold/10 hover:bg-gold/5"
                 >
                   <td className="px-4 py-3">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedReceipt(receipt)}
+                      className="w-10 h-10 rounded-lg overflow-hidden border border-gold/20 hover:border-gold/50 hover:ring-2 hover:ring-gold/30 transition-all cursor-zoom-in"
+                      title="Зураг томруулж харах"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={receipt.imageUrl}
-                        alt=""
+                        alt="Баримтын зураг"
                         className="w-full h-full object-cover"
                       />
-                    </div>
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-cream text-sm">
                     {receipt.receiptNumber}
@@ -167,6 +215,11 @@ export default function AdminReceiptsTable() {
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={receipt.status} />
+                  </td>
+                  <td className="px-4 py-3 text-gold text-sm">
+                    {receipt.status === "approved"
+                      ? `${Math.max(0, (receipt.assignedEntries ?? 0) - (receipt.usedEntries ?? 0))} / ${receipt.assignedEntries ?? 0}`
+                      : "-"}
                   </td>
                   <td className="px-4 py-3 text-cream/50 text-sm">
                     {formatDateTime(receipt.createdAt)}
@@ -198,6 +251,14 @@ export default function AdminReceiptsTable() {
                           </button>
                         </>
                       )}
+                      <button
+                        onClick={() => handleDelete(receipt)}
+                        disabled={deletingId === receipt._id}
+                        className="p-2 rounded-lg text-danger hover:bg-danger/10 transition-colors disabled:opacity-50"
+                        title="Устгах"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -211,7 +272,9 @@ export default function AdminReceiptsTable() {
         <ReceiptPreviewModal
           receipt={selectedReceipt}
           onClose={() => setSelectedReceipt(null)}
-          onApprove={() => handleApprove(selectedReceipt._id)}
+          onApprove={(assignedEntries) =>
+            handleApprove(selectedReceipt._id, assignedEntries)
+          }
           onReject={(reason) => handleReject(selectedReceipt._id, reason)}
           loading={actionLoading}
         />

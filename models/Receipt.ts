@@ -7,6 +7,8 @@ export interface IReceipt extends Document {
   imageUrl: string;
   imageKey: string;
   status: "pending" | "approved" | "rejected";
+  assignedEntries: number;
+  usedEntries: number;
   rejectionReason?: string;
   approvedAt?: Date;
   rejectedAt?: Date;
@@ -26,6 +28,8 @@ const ReceiptSchema = new Schema<IReceipt>(
       enum: ["pending", "approved", "rejected"],
       default: "pending",
     },
+    assignedEntries: { type: Number, default: 0, min: 0 },
+    usedEntries: { type: Number, default: 0, min: 0 },
     rejectionReason: { type: String },
     approvedAt: { type: Date },
     rejectedAt: { type: Date },

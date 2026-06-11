@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { validateAssignedEntries } from "@/lib/lottery-entries";
 import Receipt from "@/models/Receipt";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,24 @@ export async function PATCH(
     if ("error" in authResult) return authResult.error;
 
     await connectDB();
+
+    const body = await request.json().catch(() => ({}));
+    const assignedEntries = Number(body.assignedEntries ?? 1);
+
+    const entryValidation = validateAssignedEntries(assignedEntries);
+    if (!entryValidation.valid) {
+      return NextResponse.json(
+        { success: false, message: entryValidation.message },
+        { status: 400 }
+      );
+    }
+
+    if (assignedEntries < 1) {
+      return NextResponse.json(
+        { success: false, message: "Баталгаажуулахад дор хаяж 1 эрх олгоно" },
+        { status: 400 }
+      );
+    }
 
     const receipt = await Receipt.findById(params.id);
     if (!receipt) {
@@ -31,6 +50,8 @@ export async function PATCH(
     }
 
     receipt.status = "approved";
+    receipt.assignedEntries = assignedEntries;
+    receipt.usedEntries = 0;
     receipt.approvedAt = new Date();
     receipt.rejectionReason = undefined;
     await receipt.save();
