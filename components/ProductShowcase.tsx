@@ -16,7 +16,7 @@ export default function ProductShowcase() {
           <div className="w-20 h-1 bg-gold-gradient mx-auto mt-4 rounded-full" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 max-w-6xl mx-auto">
           {PRODUCT_GALLERY.map((product) => (
             <div
               key={product.src}
@@ -28,7 +28,7 @@ export default function ProductShowcase() {
                   alt={product.alt}
                   fill
                   className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
-                  sizes="(max-width: 768px) 50vw, 33vw"
+                  sizes="(max-width: 768px) 50vw, 25vw"
                 />
               </div>
               <p className="text-cream/70 text-xs sm:text-sm text-center font-medium">

@@ -20,6 +20,7 @@ export const SITE_IMAGES = {
     coffee1: "/images/Coffee1.png",
     coffee2: "/images/Coffee2.png",
     coffee3: "/images/Coffee3.png",
+    coffee4: "/images/Coffee4.png",
   },
   cashPrizes: {
     oneMillion: "/images/1,000,000.jpg",
@@ -39,12 +40,17 @@ export const PRODUCT_GALLERY = [
   },
   {
     src: SITE_IMAGES.products.coffee1,
-    alt: "YE YE Rich 45s Sachet — урд тал",
-    label: "YE YE Rich 45s",
+    alt: "YE YE Rich Sachet — урд тал",
+    label: "YE YE Rich Sachet",
   },
   {
     src: SITE_IMAGES.products.coffee2,
     alt: "YE YE Original 50s — урд тал",
     label: "YE YE Original 50s",
+  },
+  {
+    src: SITE_IMAGES.products.coffee4,
+    alt: "YE YE Rich 45s — урд тал",
+    label: "YE YE Rich 45s",
   },
 ] as const;

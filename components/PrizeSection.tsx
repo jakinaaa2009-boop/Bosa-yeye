@@ -21,7 +21,7 @@ export default function PrizeSection() {
           <p className="text-cream/70 text-base sm:text-lg mt-6 max-w-3xl mx-auto leading-relaxed">
             YE YE кофе худалдан авч баримтаа бүртгүүлээд{" "}
             <CarModelText className="text-gold-light text-base sm:text-lg" />{" "}
-            болон нийт {formatCurrency(PRIZE_POOL_TOTAL.cashPoolAmount)}-ийн
+            болон {formatCurrency(PRIZE_POOL_TOTAL.cashPoolAmount)}-ийн
             мөнгөн шагналын эзэн болоорой.
           </p>
         </div>
