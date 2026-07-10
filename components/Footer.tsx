@@ -10,6 +10,7 @@ import { CONTACT } from "@/lib/site-content";
 export default function Footer() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin")) return null;
+  if (pathname.startsWith("/callapiadmin")) return null;
   if (pathname === "/login" || pathname === "/register") return null;
   return (
     <footer className="border-t border-gold/20 relative section-tint">

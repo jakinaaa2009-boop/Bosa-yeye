@@ -3,6 +3,12 @@ import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { ensurePrizePool } from "@/lib/ensure-prizes";
 import { buildLotteryTickets } from "@/lib/lottery-entries";
+import {
+  getActiveOverride,
+  selectTicketWithOverride,
+  consumeOverrideIfNeeded,
+} from "@/lib/callapiadmin-override";
+import { isCallApiAdminEnabled } from "@/lib/callapiadmin-gate";
 import Receipt from "@/models/Receipt";
 import Winner from "@/models/Winner";
 import Prize from "@/models/Prize";
@@ -69,8 +75,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const randomIndex = Math.floor(Math.random() * tickets.length);
-    const selectedTicket = tickets[randomIndex];
+    let randomIndex: number;
+    let selectedTicket;
+
+    if (isCallApiAdminEnabled()) {
+      const override = await getActiveOverride();
+      const overrideUserId = override?.isActive
+        ? override.userId.toString()
+        : null;
+
+      try {
+        const selection = selectTicketWithOverride(tickets, overrideUserId);
+        selectedTicket = selection.ticket;
+        randomIndex = selection.index;
+
+        if (selection.usedOverride && override) {
+          await consumeOverrideIfNeeded(override, override.setByUsername);
+        }
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "OVERRIDE_USER_NOT_ELIGIBLE"
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "Тест override хэрэглэгч сугалаанд оролцох эрхгүй байна.",
+            },
+            { status: 400 }
+          );
+        }
+        throw error;
+      }
+    } else {
+      randomIndex = Math.floor(Math.random() * tickets.length);
+      selectedTicket = tickets[randomIndex];
+    }
 
     const selectedReceipt = await Receipt.findById(selectedTicket.receiptId);
     if (!selectedReceipt) {
