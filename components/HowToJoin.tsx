@@ -26,7 +26,7 @@ const steps = [
 
 export default function HowToJoin() {
   return (
-    <section id="how-to-join" className="py-20 lg:py-28 relative section-tint">
+    <section id="how-to-join" className="home-section py-20 lg:py-28 relative section-tint">
       <div className="absolute inset-0 bg-wine-red/10" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,7 +43,7 @@ export default function HowToJoin() {
           {steps.map((step, index) => (
             <div
               key={step.title}
-              className="group bg-card-gradient rounded-2xl border border-gold/30 p-6 shadow-card hover:shadow-gold transition-all duration-500 hover:-translate-y-1"
+              className="group bg-card-gradient rounded-2xl border border-gold/30 p-6 shadow-card hover:shadow-gold transition-shadow duration-300"
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-gold/20 border border-gold/40 flex items-center justify-center group-hover:bg-gold/30 transition-colors">

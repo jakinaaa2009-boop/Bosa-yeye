@@ -8,7 +8,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
 
 export interface AuthUser {
   id: string;
@@ -41,7 +40,6 @@ export function normalizeAuthUser(user: Record<string, unknown>): AuthUser {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const pathname = usePathname();
 
   const refreshUser = useCallback(async () => {
     try {
@@ -63,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refreshUser();
-  }, [pathname, refreshUser]);
+  }, [refreshUser]);
 
   const logout = useCallback(async () => {
     await fetch("/api/auth/logout", {

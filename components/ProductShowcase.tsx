@@ -3,7 +3,7 @@ import { PRODUCT_GALLERY } from "@/lib/site-images";
 
 export default function ProductShowcase() {
   return (
-    <section className="py-16 lg:py-20 relative section-tint">
+    <section className="home-section py-16 lg:py-20 relative section-tint">
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
@@ -20,14 +20,14 @@ export default function ProductShowcase() {
           {PRODUCT_GALLERY.map((product) => (
             <div
               key={product.src}
-              className="group bg-card-gradient rounded-2xl border border-gold/25 p-4 shadow-card hover:shadow-gold hover:border-gold/40 transition-all duration-300"
+              className="group bg-card-gradient rounded-2xl border border-gold/25 p-4 shadow-card hover:shadow-gold hover:border-gold/40 transition-[box-shadow,border-color] duration-300"
             >
               <div className="aspect-square relative rounded-xl overflow-hidden bg-coffee-dark/40 mb-3">
                 <SiteImage
                   src={product.src}
                   alt={product.alt}
                   fill
-                  className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                  className="object-contain p-2 md:group-hover:scale-[1.03] transition-transform duration-300 motion-reduce:transition-none motion-reduce:transform-none"
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
               </div>

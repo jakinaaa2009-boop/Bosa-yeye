@@ -1,58 +1,52 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
+import { connectDB } from "@/lib/db";
+import Winner from "@/models/Winner";
 import { maskPhone, formatWinnerDate, getWinnerDisplayName } from "@/lib/utils";
 import { getWinnerPrizeDisplay } from "@/lib/prize-pool";
 import Button from "./Button";
-import WinnerCard, {
-  getWinnerGridClass,
-  type WinnerCardData,
-} from "./WinnerCard";
+import WinnerCard, { getWinnerGridClass } from "./WinnerCard";
 
-export default function WinnersSection() {
-  const [winners, setWinners] = useState<WinnerCardData[]>([]);
-  const [loading, setLoading] = useState(true);
+async function getLatestWinners() {
+  try {
+    await connectDB();
+    const winners = await Winner.find()
+      .populate("userId", "phone email")
+      .sort({ drawDate: -1 })
+      .limit(4);
 
-  useEffect(() => {
-    fetch("/api/winners", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (!data.success) return;
+    return winners.map((w) => {
+      const user = w.userId as unknown as { phone: string; email: string };
+      const phone = user?.phone || "";
+      const email = user?.email || "";
+      const prize = getWinnerPrizeDisplay({
+        prizeName: w.prizeName,
+        prizeType: w.prizeType as "car" | "cash",
+        prizeAmount: w.prizeAmount,
+        carModel: w.carModel,
+      });
 
-        const cards = (data.winners || []).slice(0, 4).map(
-          (w: {
-            _id: string;
-            phone?: string;
-            email?: string;
-            prizeName: string;
-            prizeType: "car" | "cash";
-            prizeAmount?: number;
-            carModel?: string;
-            drawDate: string;
-          }) => {
-            const prize = getWinnerPrizeDisplay(w);
-            return {
-              id: w._id,
-              displayName: getWinnerDisplayName(w.phone || "", w.email),
-              phone: maskPhone(w.phone || ""),
-              prizeTitle: prize.title,
-              prizeSubtitle: prize.subtitle,
-              prizeType: w.prizeType,
-              drawDate: formatWinnerDate(w.drawDate),
-            };
-          }
-        );
+      return {
+        id: w._id.toString(),
+        displayName: getWinnerDisplayName(phone, email),
+        phone: maskPhone(phone),
+        prizeTitle: prize.title,
+        prizeSubtitle: prize.subtitle,
+        prizeType: w.prizeType as "car" | "cash",
+        drawDate: formatWinnerDate(w.drawDate),
+      };
+    });
+  } catch (error) {
+    console.error("Winners section load error:", error);
+    return [];
+  }
+}
 
-        setWinners(cards);
-      })
-      .catch(() => setWinners([]))
-      .finally(() => setLoading(false));
-  }, []);
+export default async function WinnersSection() {
+  const winners = await getLatestWinners();
 
   return (
-    <section className="py-20 lg:py-28 relative section-tint">
+    <section className="home-section py-20 lg:py-28 relative section-tint">
       <div className="absolute inset-0 bg-wine-red/15" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,16 +57,7 @@ export default function WinnersSection() {
           <div className="w-24 h-1 bg-gold-gradient mx-auto mt-4 rounded-full" />
         </div>
 
-        {loading ? (
-          <div className={`${getWinnerGridClass(4)} gap-6 mb-10`}>
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="bg-card-gradient rounded-2xl border border-gold/20 p-6 animate-pulse h-52"
-              />
-            ))}
-          </div>
-        ) : winners.length === 0 ? (
+        {winners.length === 0 ? (
           <div className="text-center py-12">
             <Trophy className="w-16 h-16 text-gold/30 mx-auto mb-4" />
             <p className="text-cream/50 text-lg">

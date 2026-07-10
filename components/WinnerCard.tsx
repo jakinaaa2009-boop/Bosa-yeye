@@ -34,7 +34,7 @@ export default function WinnerCard({ winner, compact = false }: WinnerCardProps)
     <article
       className={cn(
         "bg-card-gradient rounded-2xl border border-gold/30 shadow-card",
-        "hover:shadow-gold hover:border-gold/50 transition-all duration-300",
+        "hover:shadow-gold hover:border-gold/50 transition-[box-shadow,border-color] duration-300",
         "flex flex-col items-center text-center",
         compact ? "p-5" : "p-6 sm:p-7"
       )}

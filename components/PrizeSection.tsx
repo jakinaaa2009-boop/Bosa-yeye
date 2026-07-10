@@ -9,7 +9,7 @@ export default function PrizeSection() {
   const [superPrize, ...cashPrizes] = PRIZE_POOL_DISPLAY;
 
   return (
-    <section id="prizes" className="py-20 lg:py-28 relative section-tint">
+    <section id="prizes" className="home-section py-20 lg:py-28 relative section-tint">
       <div className="absolute inset-0 bg-hero-gradient opacity-20" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,7 +28,7 @@ export default function PrizeSection() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-wine-red via-deep-red to-coffee-brown rounded-2xl border-2 border-gold/50 shadow-gold-lg overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full blur-2xl" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gold/10 rounded-full" />
             <div className="relative aspect-[4/3] w-full">
               <SiteImage
                 src={SITE_IMAGES.car.alternate}
@@ -67,7 +67,7 @@ export default function PrizeSection() {
             return (
               <div
                 key={prize.title}
-                className="bg-card-gradient rounded-2xl border border-gold/30 shadow-card hover:shadow-gold transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                className="bg-card-gradient rounded-2xl border border-gold/30 shadow-card hover:shadow-gold transition-shadow duration-300 overflow-hidden"
               >
                 {imageSrc && (
                   <div className="relative aspect-[4/3] w-full bg-coffee-dark/40">

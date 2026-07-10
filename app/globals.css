@@ -9,7 +9,7 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
   }
 
   body {
@@ -31,22 +31,16 @@
         rgba(91, 36, 40, 0.08),
         transparent 50%
       ),
-      radial-gradient(
-        ellipse 30% 20% at 70% 20%,
-        rgba(255, 244, 214, 0.03),
-        transparent 70%
-      ),
       var(--premium-bg-pattern),
       var(--coffee-seeds-texture);
     background-size:
       100% 100%,
       100% 100%,
       100% 100%,
-      100% 100%,
       240px 240px,
       280px 280px;
-    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat;
-    background-attachment: fixed;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat;
+    background-attachment: scroll;
   }
 
   ::selection {
@@ -63,7 +57,12 @@
   }
 
   .section-tint {
-    @apply bg-coffee-dark/25 backdrop-blur-[2px];
+    @apply bg-coffee-dark/45;
+  }
+
+  .home-section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 520px;
   }
 
   .car-model-text {
@@ -124,10 +123,9 @@
     height: 420px;
     background: radial-gradient(
       circle,
-      rgba(247, 217, 120, 0.22) 0%,
+      rgba(247, 217, 120, 0.18) 0%,
       transparent 68%
     );
-    filter: blur(40px);
     pointer-events: none;
   }
 
@@ -185,7 +183,7 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    filter: drop-shadow(0 0 35px rgba(214, 168, 79, 0.25));
+    filter: drop-shadow(0 0 20px rgba(214, 168, 79, 0.18));
   }
 
   .hero-prize-strip {

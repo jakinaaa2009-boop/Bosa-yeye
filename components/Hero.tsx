@@ -45,7 +45,7 @@ export default function Hero() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="w-full sm:w-auto px-8 py-[18px] rounded-xl bg-white/5 border-[#F8EBC8]/25 text-[#F8EBC8] hover:border-[#E5C76B] hover:bg-white/[0.08] transition-all duration-300"
+                  className="w-full sm:w-auto px-8 py-[18px] rounded-xl bg-white/5 border-[#F8EBC8]/25 text-[#F8EBC8] hover:border-[#E5C76B] hover:bg-white/[0.08] transition-[border-color,background-color] duration-300"
                 >
                   Шагналын сан харах
                 </Button>
