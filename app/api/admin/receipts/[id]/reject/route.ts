@@ -27,6 +27,8 @@ export async function PATCH(
       );
     }
 
+    const trimmedReason = rejectionReason.trim();
+
     const receipt = await Receipt.findById(params.id);
     if (!receipt) {
       return NextResponse.json(
@@ -44,7 +46,7 @@ export async function PATCH(
 
     receipt.status = "rejected";
     receipt.rejectedAt = new Date();
-    receipt.rejectionReason = rejectionReason || "Баримт буруу байна";
+    receipt.rejectionReason = trimmedReason;
     await receipt.save();
 
     const populated = await Receipt.findById(receipt._id).populate(

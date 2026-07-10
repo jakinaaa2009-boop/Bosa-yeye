@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { validateAssignedEntries } from "@/lib/lottery-entries";
+import { validateAssignedEntries, parsePositiveEntryCount } from "@/lib/lottery-entries";
 import Receipt from "@/models/Receipt";
 
 export const dynamic = "force-dynamic";
@@ -17,19 +17,21 @@ export async function PATCH(
     await connectDB();
 
     const body = await request.json().catch(() => ({}));
-    const assignedEntries = Number(body.assignedEntries ?? 1);
-
-    const entryValidation = validateAssignedEntries(assignedEntries);
-    if (!entryValidation.valid) {
+    const parsed = parsePositiveEntryCount(body.assignedEntries ?? 1);
+    if (!parsed.valid) {
       return NextResponse.json(
-        { success: false, message: entryValidation.message },
+        { success: false, message: parsed.message },
         { status: 400 }
       );
     }
 
-    if (assignedEntries < 1) {
+    const assignedEntries = parsed.value;
+    const entryValidation = validateAssignedEntries(assignedEntries, 0, {
+      requirePositive: true,
+    });
+    if (!entryValidation.valid) {
       return NextResponse.json(
-        { success: false, message: "Баталгаажуулахад дор хаяж 1 эрх олгоно" },
+        { success: false, message: entryValidation.message },
         { status: 400 }
       );
     }

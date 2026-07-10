@@ -100,7 +100,7 @@ export default function AdminWinnersTable() {
                 Азтаны утас
               </th>
               <th className="px-4 py-3 text-left text-cream/70 text-sm">
-                Баримтын дугаар
+                И-Баримтын дугаар
               </th>
               <th className="px-4 py-3 text-left text-cream/70 text-sm">
                 Шагналын нэр

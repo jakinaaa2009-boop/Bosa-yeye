@@ -6,7 +6,7 @@ import StatusBadge from "./StatusBadge";
 import Button from "./Button";
 import Input from "./Input";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
-import { ENTRY_PRESETS } from "@/lib/lottery-entries";
+import { ENTRY_PRESETS, parsePositiveEntryCount } from "@/lib/lottery-entries";
 
 interface EntryRow {
   _id: string;
@@ -68,7 +68,20 @@ export default function AdminEntriesTable() {
   }, [fetchEntries]);
 
   const handleSave = async (row: EntryRow) => {
-    const assignedEntries = Number(draftEntries[row._id]);
+    const parsed = parsePositiveEntryCount(draftEntries[row._id]);
+    if (!parsed.valid) {
+      setError(parsed.message);
+      return;
+    }
+
+    if (parsed.value < row.usedEntries) {
+      setError(
+        `Олгосон эрх ашигласан эрхээс (${row.usedEntries}) бага байж болохгүй`
+      );
+      return;
+    }
+
+    const assignedEntries = parsed.value;
 
     setError("");
     setSavingId(row._id);
@@ -215,10 +228,11 @@ export default function AdminEntriesTable() {
                   </td>
                   <td className="px-4 py-3">
                     {row.status === "approved" ? (
-                      <div className="flex items-center gap-2 min-w-[220px]">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-[240px]">
                         <Input
                           type="number"
-                          min={row.usedEntries}
+                          min={Math.max(1, row.usedEntries)}
+                          step={1}
                           value={draftEntries[row._id] ?? "0"}
                           onChange={(e) =>
                             setDraftEntries((current) => ({
@@ -226,7 +240,7 @@ export default function AdminEntriesTable() {
                               [row._id]: e.target.value,
                             }))
                           }
-                          className="w-20 py-2 text-sm"
+                          className="w-full sm:w-28 py-2 text-sm"
                         />
                         <button
                           type="button"
@@ -275,8 +289,8 @@ export default function AdminEntriesTable() {
 
       <p className="mt-4 text-cream/45 text-xs flex items-center gap-2">
         <Ticket className="w-4 h-4 text-gold/60" />
-        5 ширхэг кофе = 1 эрх, 1 уут кофе = 10 эрх. Ялсан хэрэглэгчийн эрх 1-ээр
-        хасагдана, бусад хэрэглэгчийн эрх хэвээр үлдэнэ.
+        5 ширхэг кофе = 1 эрх, 1 уут кофе = 10 эрх. Админ дурын эерэг тооны
+        эрх олгож болно. Ялсан хэрэглэгчийн эрх 1-ээр хасагдана.
       </p>
     </div>
   );

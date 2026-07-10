@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { validateAssignedEntries } from "@/lib/lottery-entries";
+import { validateAssignedEntries, parsePositiveEntryCount } from "@/lib/lottery-entries";
 import Receipt from "@/models/Receipt";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +14,19 @@ export async function PATCH(
     const authResult = await requireAdmin(request);
     if ("error" in authResult) return authResult.error;
 
+    const { user: admin } = authResult;
     await connectDB();
 
     const body = await request.json();
-    const assignedEntries = Number(body.assignedEntries);
+    const parsed = parsePositiveEntryCount(body.assignedEntries);
+    if (!parsed.valid) {
+      return NextResponse.json(
+        { success: false, message: parsed.message },
+        { status: 400 }
+      );
+    }
+
+    const assignedEntries = parsed.value;
 
     const receipt = await Receipt.findById(params.id);
     if (!receipt) {
@@ -31,15 +40,17 @@ export async function PATCH(
       return NextResponse.json(
         {
           success: false,
-          message: "Зөвхөн баталгаажсан баримтад эрх олгоно",
+          message: "Зөвхөн баталгаажсан баримтын эрхийг засна",
         },
         { status: 400 }
       );
     }
 
+    const usedEntries = receipt.usedEntries ?? 0;
     const entryValidation = validateAssignedEntries(
       assignedEntries,
-      receipt.usedEntries ?? 0
+      usedEntries,
+      { requirePositive: true }
     );
     if (!entryValidation.valid) {
       return NextResponse.json(
@@ -48,7 +59,21 @@ export async function PATCH(
       );
     }
 
+    if (receipt.assignedEntries === assignedEntries) {
+      const populated = await Receipt.findById(receipt._id).populate(
+        "userId",
+        "phone email"
+      );
+      return NextResponse.json({
+        success: true,
+        message: "Эрхийн тоо өөрчлөгдөөгүй байна",
+        receipt: populated,
+      });
+    }
+
     receipt.assignedEntries = assignedEntries;
+    receipt.entriesUpdatedAt = new Date();
+    receipt.entriesUpdatedBy = admin.phone || admin.email;
     await receipt.save();
 
     const populated = await Receipt.findById(receipt._id).populate(

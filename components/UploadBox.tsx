@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 interface UploadBoxProps {
   onFileSelect: (file: File | null) => void;
   error?: string;
+  instruction?: string;
 }
 
-export default function UploadBox({ onFileSelect, error }: UploadBoxProps) {
+export default function UploadBox({ onFileSelect, error, instruction }: UploadBoxProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [dragOver, setDragOver] = useState(false);
@@ -50,7 +51,12 @@ export default function UploadBox({ onFileSelect, error }: UploadBoxProps) {
   const clearFile = () => handleFile(null);
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-3">
+      {instruction && (
+        <p className="text-cream/80 text-sm sm:text-base leading-relaxed bg-gold/10 border border-gold/25 rounded-xl px-4 py-3">
+          {instruction}
+        </p>
+      )}
       {!preview ? (
         <label
           onDragOver={(e) => {

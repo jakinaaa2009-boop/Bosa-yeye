@@ -18,9 +18,10 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const receiptNumber = formData.get("receiptNumber") as string;
     const amount = formData.get("amount") as string;
+    const productCount = formData.get("productCount") as string;
     const image = formData.get("image") as File | null;
 
-    const validationError = validateReceipt({ receiptNumber, amount });
+    const validationError = validateReceipt({ receiptNumber, amount, productCount });
     if (validationError) {
       return NextResponse.json(
         { success: false, message: validationError },
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     const existing = await Receipt.findOne({ receiptNumber: receiptNumber.trim() });
     if (existing) {
       return NextResponse.json(
-        { success: false, message: "Энэ баримтын дугаар аль хэдийн бүртгэгдсэн байна" },
+        { success: false, message: "Энэ и-баримтын дугаар аль хэдийн бүртгэгдсэн байна" },
         { status: 409 }
       );
     }
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       userId: user._id,
       receiptNumber: receiptNumber.trim(),
       amount: Number(amount),
+      productCount: Number(productCount),
       imageUrl: url,
       imageKey: key,
       status: "pending",

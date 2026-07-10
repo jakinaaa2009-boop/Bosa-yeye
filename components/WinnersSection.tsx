@@ -1,44 +1,62 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
-import { connectDB } from "@/lib/db";
-import Winner from "@/models/Winner";
-import {
-  maskPhone,
-  formatDate,
-} from "@/lib/utils";
+import { maskPhone, formatDate, getWinnerDisplayName } from "@/lib/utils";
 import { getWinnerPrizeValue } from "@/lib/prize-pool";
 import Button from "./Button";
 
-async function getLatestWinners() {
-  try {
-    await connectDB();
-    const winners = await Winner.find()
-      .populate("userId", "phone email")
-      .sort({ drawDate: -1 })
-      .limit(4);
-
-    return winners.map((w) => {
-      const user = w.userId as unknown as { phone: string; email: string };
-      return {
-        id: w._id.toString(),
-        phone: maskPhone(user?.phone || ""),
-        prizeName: w.prizeName,
-        prizeType: w.prizeType as "car" | "cash",
-        prizeValue: getWinnerPrizeValue({
-          prizeType: w.prizeType as "car" | "cash",
-          prizeAmount: w.prizeAmount,
-          carModel: w.carModel,
-        }),
-        drawDate: formatDate(w.drawDate),
-      };
-    });
-  } catch {
-    return [];
-  }
+interface WinnerCard {
+  id: string;
+  displayName: string;
+  phone: string;
+  prizeName: string;
+  prizeType: "car" | "cash";
+  prizeValue: string;
+  drawDate: string;
 }
 
-export default async function WinnersSection() {
-  const winners = await getLatestWinners();
+export default function WinnersSection() {
+  const [winners, setWinners] = useState<WinnerCard[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/winners", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.success) return;
+
+        const cards = (data.winners || []).slice(0, 4).map(
+          (w: {
+            _id: string;
+            phone?: string;
+            email?: string;
+            prizeName: string;
+            prizeType: "car" | "cash";
+            prizeAmount?: number;
+            carModel?: string;
+            drawDate: string;
+          }) => ({
+            id: w._id,
+            displayName: getWinnerDisplayName(w.phone || "", w.email),
+            phone: maskPhone(w.phone || ""),
+            prizeName: w.prizeName,
+            prizeType: w.prizeType,
+            prizeValue: getWinnerPrizeValue({
+              prizeType: w.prizeType,
+              prizeAmount: w.prizeAmount,
+              carModel: w.carModel,
+            }),
+            drawDate: formatDate(w.drawDate),
+          })
+        );
+
+        setWinners(cards);
+      })
+      .catch(() => setWinners([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <section className="py-20 lg:py-28 relative section-tint">
@@ -52,7 +70,16 @@ export default async function WinnersSection() {
           <div className="w-24 h-1 bg-gold-gradient mx-auto mt-4 rounded-full" />
         </div>
 
-        {winners.length === 0 ? (
+        {loading ? (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-card-gradient rounded-2xl border border-gold/20 p-6 animate-pulse h-36"
+              />
+            ))}
+          </div>
+        ) : winners.length === 0 ? (
           <div className="text-center py-12">
             <Trophy className="w-16 h-16 text-gold/30 mx-auto mb-4" />
             <p className="text-cream/50 text-lg">
@@ -67,11 +94,14 @@ export default async function WinnersSection() {
                 className="bg-card-gradient rounded-2xl border border-gold/30 p-6 shadow-card hover:shadow-gold transition-all duration-300"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gold-gradient flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-gold-gradient flex items-center justify-center shrink-0">
                     <Trophy className="w-5 h-5 text-coffee-dark" />
                   </div>
-                  <div>
-                    <p className="text-cream font-semibold">{winner.phone}</p>
+                  <div className="min-w-0">
+                    <p className="text-cream font-semibold truncate">
+                      {winner.displayName}
+                    </p>
+                    <p className="text-cream/50 text-xs mt-0.5">{winner.phone}</p>
                     <p className="text-cream/40 text-xs mt-0.5">{winner.drawDate}</p>
                   </div>
                 </div>

@@ -1,8 +1,10 @@
 import { connectDB } from "@/lib/db";
 import Winner from "@/models/Winner";
 import { Trophy } from "lucide-react";
-import { maskPhone, formatDate } from "@/lib/utils";
+import { maskPhone, formatDate, getWinnerDisplayName } from "@/lib/utils";
 import { getWinnerPrizeValue } from "@/lib/prize-pool";
+
+export const dynamic = "force-dynamic";
 
 async function getWinners() {
   try {
@@ -13,9 +15,12 @@ async function getWinners() {
 
     return winners.map((w) => {
       const user = w.userId as unknown as { phone: string; email: string };
+      const phone = user?.phone || "";
+      const email = user?.email || "";
       return {
         id: w._id.toString(),
-        phone: maskPhone(user?.phone || ""),
+        displayName: getWinnerDisplayName(phone, email),
+        phone: maskPhone(phone),
         prizeName: w.prizeName,
         prizeType: w.prizeType as "car" | "cash",
         prizeAmount: w.prizeAmount,
@@ -28,7 +33,8 @@ async function getWinners() {
         drawDate: formatDate(w.drawDate),
       };
     });
-  } catch {
+  } catch (error) {
+    console.error("Winners page load error:", error);
     return [];
   }
 }
@@ -65,7 +71,8 @@ export default async function WinnersPage() {
                     <Trophy className="w-6 h-6 text-coffee-dark" />
                   </div>
                   <div>
-                    <p className="text-cream font-semibold">{winner.phone}</p>
+                    <p className="text-cream font-semibold">{winner.displayName}</p>
+                    <p className="text-cream/50 text-xs">{winner.phone}</p>
                     <p className="text-cream/40 text-xs">{winner.drawDate}</p>
                   </div>
                 </div>

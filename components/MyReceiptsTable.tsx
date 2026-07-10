@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import StatusBadge from "./StatusBadge";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
+import { getRemainingEntries } from "@/lib/lottery-entries";
 import { ReceiptText } from "lucide-react";
+
+function RejectionReason({ reason }: { reason: string }) {
+  return (
+    <div className="mt-3 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2.5">
+      <p className="text-cream/60 text-xs mb-1">Татгалзсан шалтгаан:</p>
+      <p className="text-cream text-sm leading-relaxed">{reason}</p>
+    </div>
+  );
+}
 
 interface Receipt {
   _id: string;
@@ -12,8 +21,28 @@ interface Receipt {
   amount: number;
   imageUrl: string;
   status: "pending" | "approved" | "rejected";
+  assignedEntries?: number;
+  usedEntries?: number;
   rejectionReason?: string;
   createdAt: string;
+}
+
+function EntrySummary({ receipt }: { receipt: Receipt }) {
+  const remaining = getRemainingEntries(receipt);
+  const assigned = receipt.assignedEntries ?? 0;
+  const used = receipt.usedEntries ?? 0;
+
+  return (
+    <div className="mt-2 rounded-xl border border-gold/20 bg-gold/5 px-3 py-2">
+      <p className="text-cream/60 text-xs mb-1">Сугалааны эрх:</p>
+      <p className="text-gold text-sm font-medium">
+        Үлдсэн {remaining} / Нийт {assigned}
+        {used > 0 && (
+          <span className="text-cream/50 font-normal"> · Ашигласан {used}</span>
+        )}
+      </p>
+    </div>
+  );
 }
 
 const filters = [
@@ -85,7 +114,7 @@ export default function MyReceiptsTable() {
                     Зураг
                   </th>
                   <th className="px-4 py-3 text-left text-cream/70 text-sm font-medium">
-                    Баримтын дугаар
+                    И-Баримтын дугаар
                   </th>
                   <th className="px-4 py-3 text-left text-cream/70 text-sm font-medium">
                     Үнийн дүн
@@ -95,6 +124,9 @@ export default function MyReceiptsTable() {
                   </th>
                   <th className="px-4 py-3 text-left text-cream/70 text-sm font-medium">
                     Төлөв
+                  </th>
+                  <th className="px-4 py-3 text-left text-cream/70 text-sm font-medium">
+                    Сугалааны эрх
                   </th>
                 </tr>
               </thead>
@@ -125,6 +157,20 @@ export default function MyReceiptsTable() {
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={receipt.status} />
+                      {receipt.status === "rejected" && receipt.rejectionReason && (
+                        <div className="mt-2 max-w-xs">
+                          <RejectionReason reason={receipt.rejectionReason} />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      {receipt.status === "approved" ? (
+                        <span className="text-gold font-medium">
+                          {getRemainingEntries(receipt)} / {receipt.assignedEntries ?? 0}
+                        </span>
+                      ) : (
+                        <span className="text-cream/40">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -160,6 +206,12 @@ export default function MyReceiptsTable() {
                     <div className="mt-2">
                       <StatusBadge status={receipt.status} />
                     </div>
+                    {receipt.status === "rejected" && receipt.rejectionReason && (
+                      <RejectionReason reason={receipt.rejectionReason} />
+                    )}
+                    {receipt.status === "approved" && (
+                      <EntrySummary receipt={receipt} />
+                    )}
                   </div>
                 </div>
               </div>

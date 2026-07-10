@@ -55,7 +55,7 @@ export default function WinnerPopup({
 
           <div className="bg-coffee-dark/50 rounded-xl border border-gold/30 p-6 mb-8 space-y-3 text-left">
             <div>
-              <p className="text-cream/50 text-xs">Баримтын дугаар</p>
+              <p className="text-cream/50 text-xs">И-Баримтын дугаар</p>
               <p className="text-cream font-bold text-lg">
                 {winner.receiptNumber}
               </p>

@@ -5,6 +5,30 @@ export const ENTRY_PRESETS = {
   bag: 10,
 } as const;
 
+/** Quick-fill values only — admins may assign any positive whole number. */
+export function parsePositiveEntryCount(
+  value: string | number | undefined | null
+): { valid: true; value: number } | { valid: false; message: string } {
+  const raw = typeof value === "string" ? value.trim() : value;
+  const num = Number(raw);
+
+  if (
+    raw === "" ||
+    raw === undefined ||
+    raw === null ||
+    !Number.isFinite(num) ||
+    !Number.isInteger(num) ||
+    num < 1
+  ) {
+    return {
+      valid: false,
+      message: "Эрхийн тоо 1-ээс их бүхэл тоо байх ёстой",
+    };
+  }
+
+  return { valid: true, value: num };
+}
+
 export interface LotteryTicket {
   receiptId: string;
   receiptNumber: string;
@@ -64,16 +88,28 @@ export function buildLotteryTickets(
 
 export function validateAssignedEntries(
   assignedEntries: number,
-  usedEntries = 0
+  usedEntries = 0,
+  options?: { requirePositive?: boolean }
 ): { valid: boolean; message?: string } {
-  if (!Number.isInteger(assignedEntries) || assignedEntries < 0) {
+  if (!Number.isInteger(assignedEntries)) {
     return { valid: false, message: "Эрхийн тоо бүхэл тоо байх ёстой" };
   }
 
-  if (assignedEntries < usedEntries) {
+  const minAllowed = options?.requirePositive
+    ? Math.max(1, usedEntries)
+    : usedEntries;
+
+  if (options?.requirePositive && assignedEntries < 1) {
+    return { valid: false, message: "Эрхийн тоо 1-ээс их бүхэл тоо байх ёстой" };
+  }
+
+  if (assignedEntries < minAllowed) {
     return {
       valid: false,
-      message: `Олгосон эрх ашигласан эрхээс (${usedEntries}) бага байж болохгүй`,
+      message:
+        usedEntries > 0
+          ? `Олгосон эрх ашигласан эрхээс (${usedEntries}) бага байж болохгүй`
+          : "Эрхийн тоо 1-ээс их бүхэл тоо байх ёстой",
     };
   }
 

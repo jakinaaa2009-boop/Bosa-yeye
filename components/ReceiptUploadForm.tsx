@@ -6,10 +6,14 @@ import Input from "./Input";
 import UploadBox from "./UploadBox";
 import Button from "./Button";
 
+const UPLOAD_INSTRUCTION =
+  "Худалдан авсан ҮеҮе кофений хамт и-баримтын зургаа оруулна уу.";
+
 export default function ReceiptUploadForm() {
   const router = useRouter();
   const [receiptNumber, setReceiptNumber] = useState("");
   const [amount, setAmount] = useState("");
+  const [productCount, setProductCount] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -30,6 +34,7 @@ export default function ReceiptUploadForm() {
       const formData = new FormData();
       formData.append("receiptNumber", receiptNumber);
       formData.append("amount", amount);
+      formData.append("productCount", productCount);
       formData.append("image", file);
 
       const res = await fetch("/api/receipts", {
@@ -46,6 +51,7 @@ export default function ReceiptUploadForm() {
       setSuccess(data.message);
       setReceiptNumber("");
       setAmount("");
+      setProductCount("");
       setFile(null);
       setTimeout(() => router.push("/my-receipts"), 2000);
     } catch {
@@ -69,28 +75,44 @@ export default function ReceiptUploadForm() {
       )}
 
       <Input
-        label="Баримтын дугаар"
-        placeholder="Баримтын дугаараа оруулна уу"
+        label="И-Баримтын дугаар"
+        placeholder="И-Баримтын дугаараа оруулна уу"
         value={receiptNumber}
         onChange={(e) => setReceiptNumber(e.target.value)}
         required
       />
 
-      <Input
-        label="Үнийн дүн"
-        type="number"
-        placeholder="0"
-        min="1"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        required
-      />
+      <div className="grid sm:grid-cols-2 gap-4">
+        <Input
+          label="Үнийн дүн"
+          type="number"
+          placeholder="0"
+          min="1"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          required
+        />
+
+        <Input
+          label="Бүтээгдэхүүний тоо"
+          type="number"
+          placeholder="Жишээ: 5"
+          min="1"
+          step="1"
+          value={productCount}
+          onChange={(e) => setProductCount(e.target.value)}
+          required
+        />
+      </div>
 
       <div>
-        <label className="block text-cream/90 text-sm font-medium mb-2">
+        <label className="block text-gold-light/90 text-sm font-medium mb-2">
           Баримтын зураг
         </label>
-        <UploadBox onFileSelect={setFile} />
+        <UploadBox
+          onFileSelect={setFile}
+          instruction={UPLOAD_INSTRUCTION}
+        />
       </div>
 
       <Button type="submit" loading={loading} className="w-full" size="lg">

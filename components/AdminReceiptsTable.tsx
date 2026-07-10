@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Eye, CheckCircle, XCircle, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Eye, CheckCircle, XCircle, Trash2, Ticket } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import ReceiptPreviewModal from "./ReceiptPreviewModal";
+import EditEntriesModal from "./EditEntriesModal";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
 import Button from "./Button";
 
@@ -16,14 +17,26 @@ interface Receipt {
   _id: string;
   receiptNumber: string;
   amount: number;
+  productCount?: number;
   imageUrl: string;
   status: "pending" | "approved" | "rejected";
   assignedEntries?: number;
   usedEntries?: number;
   rejectionReason?: string;
+  entriesUpdatedAt?: string;
+  entriesUpdatedBy?: string;
   createdAt: string;
   userId: ReceiptUser;
 }
+
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+const PAGE_SIZE = 20;
 
 const filters = [
   { value: "all", label: "Бүгд" },
@@ -35,31 +48,83 @@ const filters = [
 export default function AdminReceiptsTable() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
+  const [editingEntriesReceipt, setEditingEntriesReceipt] =
+    useState<Receipt | null>(null);
+  const [rejectMode, setRejectMode] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [entriesLoading, setEntriesLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const fetchReceipts = () => {
-    setLoading(true);
-    const url =
-      filter === "all"
-        ? "/api/admin/receipts?limit=50"
-        : `/api/admin/receipts?status=${filter}&limit=50`;
+  const buildUrl = useCallback(
+    (pageNum: number) => {
+      const params = new URLSearchParams({
+        page: String(pageNum),
+        limit: String(PAGE_SIZE),
+      });
+      if (filter !== "all") params.set("status", filter);
+      return `/api/admin/receipts?${params.toString()}`;
+    },
+    [filter]
+  );
 
-    fetch(url, { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) setReceipts(data.receipts);
-      })
-      .finally(() => setLoading(false));
-  };
+  const fetchReceipts = useCallback(
+    async (pageNum: number, append = false) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
+
+      setError("");
+
+      try {
+        const res = await fetch(buildUrl(pageNum), { credentials: "include" });
+        const data = await res.json();
+
+        if (!data.success) {
+          setError(data.message || "Баримт ачааллахад алдаа гарлаа");
+          if (!append) {
+            setReceipts([]);
+            setPagination(null);
+          }
+          return;
+        }
+
+        setPagination(data.pagination);
+        setPage(pageNum);
+        setReceipts((current) =>
+          append ? [...current, ...data.receipts] : data.receipts
+        );
+      } catch {
+        setError("Баримт ачааллахад алдаа гарлаа");
+        if (!append) {
+          setReceipts([]);
+          setPagination(null);
+        }
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [buildUrl]
+  );
 
   useEffect(() => {
-    fetchReceipts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+    fetchReceipts(1, false);
+  }, [fetchReceipts]);
+
+  const total = pagination?.total ?? 0;
+  const hasMore = receipts.length < total;
+
+  const handleLoadMore = () => {
+    if (!hasMore || loadingMore) return;
+    fetchReceipts(page + 1, true);
+  };
+
+  const refreshList = () => fetchReceipts(1, false);
 
   const handleApprove = async (id: string, assignedEntries = 1) => {
     setActionLoading(true);
@@ -71,7 +136,7 @@ export default function AdminReceiptsTable() {
       });
       const data = await res.json();
       if (data.success) {
-        fetchReceipts();
+        refreshList();
         setSelectedReceipt(null);
       }
     } finally {
@@ -100,10 +165,10 @@ export default function AdminReceiptsTable() {
         return;
       }
 
-      setReceipts((current) => current.filter((r) => r._id !== receipt._id));
       if (selectedReceipt?._id === receipt._id) {
         setSelectedReceipt(null);
       }
+      refreshList();
     } catch {
       setError("Устгахад алдаа гарлаа");
     } finally {
@@ -111,8 +176,9 @@ export default function AdminReceiptsTable() {
     }
   };
 
-  const handleReject = async (id: string, reason?: string) => {
+  const handleReject = async (id: string, reason: string) => {
     setActionLoading(true);
+    setError("");
     try {
       const res = await fetch(`/api/admin/receipts/${id}/reject`, {
         method: "PATCH",
@@ -120,37 +186,95 @@ export default function AdminReceiptsTable() {
         body: JSON.stringify({ rejectionReason: reason }),
       });
       const data = await res.json();
-      if (data.success) {
-        fetchReceipts();
-        setSelectedReceipt(null);
+      if (!data.success) {
+        setError(data.message || "Татгалзахад алдаа гарлаа");
+        return;
       }
+      refreshList();
+      setSelectedReceipt(null);
+      setRejectMode(false);
     } finally {
       setActionLoading(false);
     }
   };
 
+  const openReceipt = (receipt: Receipt, withRejectMode = false) => {
+    setSelectedReceipt(receipt);
+    setRejectMode(withRejectMode);
+  };
+
+  const closeReceipt = () => {
+    setSelectedReceipt(null);
+    setRejectMode(false);
+  };
+
+  const handleSaveEntries = async (assignedEntries: number) => {
+    if (!editingEntriesReceipt) return;
+
+    setEntriesLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(
+        `/api/admin/receipts/${editingEntriesReceipt._id}/entries`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ assignedEntries }),
+        }
+      );
+      const data = await res.json();
+
+      if (!data.success) {
+        setError(data.message || "Эрх хадгалахад алдаа гарлаа");
+        return;
+      }
+
+      setEditingEntriesReceipt(null);
+      refreshList();
+    } catch {
+      setError("Эрх хадгалахад алдаа гарлаа");
+    } finally {
+      setEntriesLoading(false);
+    }
+  };
+
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-6">
-        {filters.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={cn(
-              "px-4 py-2 rounded-xl text-sm font-medium transition-all",
-              filter === f.value
-                ? "bg-gold-gradient text-coffee-dark"
-                : "bg-coffee-dark/60 text-cream/60 border border-gold/20"
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex flex-wrap gap-2">
+          {filters.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setFilter(f.value)}
+              className={cn(
+                "px-4 py-2 rounded-xl text-sm font-medium transition-all",
+                filter === f.value
+                  ? "bg-gold-gradient text-coffee-dark"
+                  : "bg-coffee-dark/60 text-cream/60 border border-gold/20 hover:border-gold/40"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {!loading && pagination && (
+          <p className="text-cream/60 text-sm">
+            Нийт бүртгэл:{" "}
+            <span className="text-gold font-semibold">{total}</span>
+            {receipts.length > 0 && (
+              <span className="text-cream/40">
+                {" "}
+                · Харагдаж буй: {receipts.length}
+              </span>
             )}
-          >
-            {f.label}
-          </button>
-        ))}
+          </p>
+        )}
       </div>
 
-      {error && (
-        <p className="mb-4 text-danger text-sm">{error}</p>
-      )}
+      {error && <p className="mb-4 text-danger text-sm">{error}</p>}
 
       <div className="overflow-x-auto rounded-2xl border border-gold/20">
         <table className="w-full min-w-[900px]">
@@ -189,7 +313,7 @@ export default function AdminReceiptsTable() {
                   <td className="px-4 py-3">
                     <button
                       type="button"
-                      onClick={() => setSelectedReceipt(receipt)}
+                      onClick={() => openReceipt(receipt)}
                       className="w-10 h-10 rounded-lg overflow-hidden border border-gold/20 hover:border-gold/50 hover:ring-2 hover:ring-gold/30 transition-all cursor-zoom-in"
                       title="Зураг томруулж харах"
                     >
@@ -227,7 +351,7 @@ export default function AdminReceiptsTable() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => setSelectedReceipt(receipt)}
+                        onClick={() => openReceipt(receipt)}
                         className="p-2 rounded-lg text-gold hover:bg-gold/10 transition-colors"
                         title="Харах"
                       >
@@ -243,13 +367,22 @@ export default function AdminReceiptsTable() {
                             <CheckCircle className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleReject(receipt._id)}
+                            onClick={() => openReceipt(receipt, true)}
                             className="p-2 rounded-lg text-danger hover:bg-danger/10 transition-colors"
                             title="Татгалзах"
                           >
                             <XCircle className="w-4 h-4" />
                           </button>
                         </>
+                      )}
+                      {receipt.status === "approved" && (
+                        <button
+                          onClick={() => setEditingEntriesReceipt(receipt)}
+                          className="p-2 rounded-lg text-gold hover:bg-gold/10 transition-colors"
+                          title="Эрх засах"
+                        >
+                          <Ticket className="w-4 h-4" />
+                        </button>
                       )}
                       <button
                         onClick={() => handleDelete(receipt)}
@@ -268,10 +401,33 @@ export default function AdminReceiptsTable() {
         </table>
       </div>
 
+      {!loading && hasMore && (
+        <div className="mt-6 text-center">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            loading={loadingMore}
+            className="min-w-[200px]"
+          >
+            Цааш үзэх ({receipts.length} / {total})
+          </Button>
+        </div>
+      )}
+
+      {editingEntriesReceipt && (
+        <EditEntriesModal
+          receipt={editingEntriesReceipt}
+          onClose={() => setEditingEntriesReceipt(null)}
+          onSave={handleSaveEntries}
+          loading={entriesLoading}
+        />
+      )}
+
       {selectedReceipt && (
         <ReceiptPreviewModal
           receipt={selectedReceipt}
-          onClose={() => setSelectedReceipt(null)}
+          onClose={closeReceipt}
+          initialRejectMode={rejectMode}
           onApprove={(assignedEntries) =>
             handleApprove(selectedReceipt._id, assignedEntries)
           }

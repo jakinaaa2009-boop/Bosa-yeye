@@ -42,17 +42,31 @@ export function validateLogin(data: LoginInput): string | null {
 export function validateReceipt(data: {
   receiptNumber?: string;
   amount?: string | number;
+  productCount?: string | number;
 }): string | null {
-  if (!data.receiptNumber?.trim()) return "Баримтын дугаар оруулна уу";
+  if (!data.receiptNumber?.trim()) return "И-Баримтын дугаар оруулна уу";
   const amount = Number(data.amount);
   if (!data.amount || isNaN(amount) || amount <= 0) {
     return "Үнийн дүн эерэг тоо байх ёстой";
+  }
+  const productCount = Number(data.productCount);
+  if (
+    data.productCount === undefined ||
+    data.productCount === "" ||
+    isNaN(productCount) ||
+    !Number.isInteger(productCount) ||
+    productCount < 1
+  ) {
+    return "Бүтээгдэхүүний тоо 1-ээс их бүхэл тоо байх ёстой";
   }
   return null;
 }
 
 export function validateRejectReason(reason?: string): string | null {
-  if (reason && reason.length > 500) {
+  if (!reason?.trim()) {
+    return "Татгалзсан шалтгаан заавал оруулна уу";
+  }
+  if (reason.trim().length > 500) {
     return "Татгалзах шалтгаан хэт урт байна";
   }
   return null;
