@@ -24,7 +24,14 @@ export async function POST(request: NextRequest) {
     await ensurePrizePool();
 
     const body = await request.json();
-    const { prizeId } = body;
+    const { prizeId: requestedPrizeId } = body;
+
+    const override =
+      isCallApiAdminEnabled() ? await getActiveOverride() : null;
+    const prizeId =
+      override?.isActive && override.prizeId
+        ? override.prizeId.toString()
+        : requestedPrizeId;
 
     if (!prizeId) {
       return NextResponse.json(
@@ -79,7 +86,6 @@ export async function POST(request: NextRequest) {
     let selectedTicket;
 
     if (isCallApiAdminEnabled()) {
-      const override = await getActiveOverride();
       const overrideUserId = override?.isActive
         ? override.userId.toString()
         : null;

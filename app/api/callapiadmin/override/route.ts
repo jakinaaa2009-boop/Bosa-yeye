@@ -6,6 +6,7 @@ import {
   getActiveOverride,
   setActiveOverride,
   clearActiveOverride,
+  validateOverridePrize,
 } from "@/lib/callapiadmin-override";
 import User from "@/models/User";
 
@@ -31,6 +32,8 @@ export async function GET(request: NextRequest) {
         userId: override.userId.toString(),
         userPhone: override.userPhone,
         userEmail: override.userEmail,
+        prizeId: override.prizeId.toString(),
+        prizeName: override.prizeName,
         keepActive: override.keepActive,
         setByUsername: override.setByUsername,
         createdAt: override.createdAt,
@@ -55,14 +58,30 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { userId, keepActive = false } = body as {
+    const { userId, prizeId, keepActive = false } = body as {
       userId?: string;
+      prizeId?: string;
       keepActive?: boolean;
     };
 
     if (!userId?.trim()) {
       return NextResponse.json(
         { success: false, message: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!prizeId?.trim()) {
+      return NextResponse.json(
+        { success: false, message: "Шагнал сонгоно уу" },
+        { status: 400 }
+      );
+    }
+
+    const prizeValidation = await validateOverridePrize(prizeId.trim());
+    if (!prizeValidation.valid) {
+      return NextResponse.json(
+        { success: false, message: prizeValidation.message },
         { status: 400 }
       );
     }
@@ -81,6 +100,8 @@ export async function POST(request: NextRequest) {
       userId: user._id.toString(),
       userPhone: user.phone,
       userEmail: user.email,
+      prizeId: prizeValidation.prize._id.toString(),
+      prizeName: prizeValidation.prize.name,
       keepActive: Boolean(keepActive),
       setByUsername: authResult.session.username,
     });
@@ -91,6 +112,8 @@ export async function POST(request: NextRequest) {
         userId: override.userId.toString(),
         userPhone: override.userPhone,
         userEmail: override.userEmail,
+        prizeId: override.prizeId.toString(),
+        prizeName: override.prizeName,
         keepActive: override.keepActive,
         setByUsername: override.setByUsername,
         createdAt: override.createdAt,

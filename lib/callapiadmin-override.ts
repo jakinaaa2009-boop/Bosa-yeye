@@ -1,5 +1,6 @@
 import type { LotteryTicket } from "@/lib/lottery-entries";
 import CallApiAdminOverride from "@/models/CallApiAdminOverride";
+import Prize from "@/models/Prize";
 import { isCallApiAdminEnabled } from "@/lib/callapiadmin-gate";
 import { logCallApiAdminAction } from "@/lib/callapiadmin-audit";
 
@@ -12,6 +13,8 @@ export async function setActiveOverride(params: {
   userId: string;
   userPhone: string;
   userEmail: string;
+  prizeId: string;
+  prizeName: string;
   keepActive: boolean;
   setByUsername: string;
 }) {
@@ -21,6 +24,8 @@ export async function setActiveOverride(params: {
     userId: params.userId,
     userPhone: params.userPhone,
     userEmail: params.userEmail,
+    prizeId: params.prizeId,
+    prizeName: params.prizeName,
     keepActive: params.keepActive,
     setByUsername: params.setByUsername,
     isActive: true,
@@ -30,10 +35,25 @@ export async function setActiveOverride(params: {
     action: "override_set",
     adminUsername: params.setByUsername,
     selectedUserId: params.userId,
-    metadata: { keepActive: params.keepActive },
+    metadata: {
+      keepActive: params.keepActive,
+      prizeId: params.prizeId,
+      prizeName: params.prizeName,
+    },
   });
 
   return override;
+}
+
+export async function validateOverridePrize(prizeId: string) {
+  const prize = await Prize.findById(prizeId);
+  if (!prize || !prize.isActive) {
+    return { valid: false as const, message: "Шагнал олдсонгүй" };
+  }
+  if (prize.remainingQuantity <= 0) {
+    return { valid: false as const, message: "Энэ шагналын үлдэгдэл дууссан байна" };
+  }
+  return { valid: true as const, prize };
 }
 
 export async function clearActiveOverride(adminUsername: string) {

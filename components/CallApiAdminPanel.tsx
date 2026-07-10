@@ -18,9 +18,20 @@ interface ActiveOverride {
   userId: string;
   userPhone: string;
   userEmail: string;
+  prizeId: string;
+  prizeName: string;
   keepActive: boolean;
   setByUsername: string;
   createdAt: string;
+}
+
+interface PrizeOption {
+  _id: string;
+  name: string;
+  type: "car" | "cash";
+  amount?: number;
+  carModel?: string;
+  remainingQuantity: number;
 }
 
 interface AuditEntry {
@@ -39,6 +50,13 @@ function apiHeaders(csrfToken: string): HeadersInit {
   };
 }
 
+function getPrizeLabel(prize: PrizeOption): string {
+  if (prize.type === "car") {
+    return `Супер азтан — ${prize.carModel || "BAIC X55"} (үлдсэн: ${prize.remainingQuantity})`;
+  }
+  return `${prize.name} (үлдсэн: ${prize.remainingQuantity})`;
+}
+
 export default function CallApiAdminPanel() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
@@ -52,6 +70,8 @@ export default function CallApiAdminPanel() {
   const [users, setUsers] = useState<TestUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedPrizeId, setSelectedPrizeId] = useState("");
+  const [prizes, setPrizes] = useState<PrizeOption[]>([]);
   const [keepActive, setKeepActive] = useState(false);
   const [override, setOverride] = useState<ActiveOverride | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
@@ -103,6 +123,22 @@ export default function CallApiAdminPanel() {
     setUsers(data.users || []);
   }, []);
 
+  const loadPrizes = useCallback(async () => {
+    const res = await fetch("/api/prizes");
+    if (!res.ok) return;
+    const data = await res.json();
+    const available = (data.prizes || []).filter(
+      (p: PrizeOption) => p.remainingQuantity > 0
+    );
+    setPrizes(available);
+    if (available.length > 0) {
+      setSelectedPrizeId((current) => {
+        const stillValid = available.some((p: PrizeOption) => p._id === current);
+        return stillValid ? current : available[0]._id;
+      });
+    }
+  }, []);
+
   useEffect(() => {
     refreshSession();
   }, [refreshSession]);
@@ -112,7 +148,8 @@ export default function CallApiAdminPanel() {
     loadOverride();
     loadAudit();
     loadUsers("");
-  }, [authenticated, loadOverride, loadAudit, loadUsers]);
+    loadPrizes();
+  }, [authenticated, loadOverride, loadAudit, loadUsers, loadPrizes]);
 
   useEffect(() => {
     if (!authenticated) return;
@@ -167,7 +204,11 @@ export default function CallApiAdminPanel() {
     setActionMessage("");
     setActionError("");
     if (!selectedUserId) {
-      setActionError("Select a test user first");
+      setActionError("Эхлээд хэрэглэгч сонгоно уу");
+      return;
+    }
+    if (!selectedPrizeId) {
+      setActionError("Сугалааны төрөл сонгоно уу");
       return;
     }
 
@@ -175,7 +216,11 @@ export default function CallApiAdminPanel() {
       method: "POST",
       credentials: "include",
       headers: apiHeaders(csrfToken),
-      body: JSON.stringify({ userId: selectedUserId, keepActive }),
+      body: JSON.stringify({
+        userId: selectedUserId,
+        prizeId: selectedPrizeId,
+        keepActive,
+      }),
     });
     const data = await res.json();
     if (!res.ok || !data.success) {
@@ -183,7 +228,9 @@ export default function CallApiAdminPanel() {
       return;
     }
     setOverride(data.override);
-    setActionMessage("Test winner override is active for the next Lucky Spin.");
+    setActionMessage(
+      "Дараагийн сугалаанд сонгосон хэрэглэгч тухайн шагналыг хожино."
+    );
     loadAudit();
   };
 
@@ -291,6 +338,7 @@ export default function CallApiAdminPanel() {
                   <p>
                     User: {maskPhone(override.userPhone)} ({override.userEmail})
                   </p>
+                  <p>Шагнал: {override.prizeName}</p>
                   <p>User ID: {override.userId}</p>
                   <p>
                     Keep active after spin:{" "}
@@ -314,10 +362,34 @@ export default function CallApiAdminPanel() {
 
             <section className="bg-coffee-brown/40 border border-gold/20 rounded-2xl p-6 space-y-4">
               <h2 className="text-lg font-semibold text-gold-light">
-                Set next Lucky Spin winner
+                Дараагийн азтан тохируулах
               </h2>
+
+              <div>
+                <label className="block text-sm font-medium text-gold mb-2">
+                  Сугалааны төрөл (4 шагнал)
+                </label>
+                {prizes.length === 0 ? (
+                  <p className="text-cream/50 text-sm">
+                    Идэвхтэй шагнал олдсонгүй.
+                  </p>
+                ) : (
+                  <select
+                    value={selectedPrizeId}
+                    onChange={(e) => setSelectedPrizeId(e.target.value)}
+                    className="w-full rounded-xl border border-gold/20 bg-coffee-dark/60 px-4 py-3 text-cream focus:outline-none focus:ring-2 focus:ring-gold/40"
+                  >
+                    {prizes.map((prize) => (
+                      <option key={prize._id} value={prize._id}>
+                        {getPrizeLabel(prize)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
               <Input
-                label="Search test users (phone or email)"
+                label="Хэрэглэгч хайх (утас эсвэл email)"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
@@ -366,13 +438,16 @@ export default function CallApiAdminPanel() {
                 />
                 Keep override active after spin
               </label>
-              <Button onClick={handleSetOverride} disabled={!selectedUserId}>
-                Set as next winner
+              <Button
+                onClick={handleSetOverride}
+                disabled={!selectedUserId || !selectedPrizeId}
+              >
+                Азтан тохируулах
               </Button>
               <p className="text-cream/40 text-xs">
-                When an admin runs Lucky Spin (Сугалаа эхлүүлэх), this user will
-                win if they have eligible entries. Override is cleared after use
-                unless kept active.
+                Админ сугалаа эхлүүлэхэд сонгосон хэрэглэгч сонгосон шагналыг
+                хожино. Override ашигласны дараа цэвэрлэгдэнэ (хэрэв keep
+                active сонгоогүй бол).
               </p>
             </section>
 
