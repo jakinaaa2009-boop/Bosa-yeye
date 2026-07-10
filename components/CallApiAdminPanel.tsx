@@ -216,15 +216,14 @@ export default function CallApiAdminPanel() {
   return (
     <div className="min-h-screen bg-[#0f0a08] text-cream">
       <div className="bg-warning/20 border-b border-warning/50 px-4 py-3 text-center text-sm text-warning font-medium">
-        LOCAL DEVELOPMENT ONLY — Lucky Spin test override panel. Not available in
-        production. Do not share this URL.
+        Lucky Spin test override panel — restricted access. Do not share this URL.
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         <header>
           <h1 className="text-2xl font-bold text-gold">CallApiAdmin</h1>
           <p className="text-cream/50 text-sm mt-1">
-            Local-only Lucky Spin testing and winner override
+            Lucky Spin testing and winner override
           </p>
         </header>
 

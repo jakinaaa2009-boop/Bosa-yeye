@@ -1,6 +1,5 @@
-/** Local-only feature gate — returns false in production and when env is unset. */
+/** Enabled when ENABLE_CALLAPIADMIN=true and credentials are configured in env. */
 export function isCallApiAdminEnabled(): boolean {
-  if (process.env.NODE_ENV === "production") return false;
   if (process.env.ENABLE_CALLAPIADMIN !== "true") return false;
   return Boolean(
     process.env.CALLAPIADMIN_USERNAME?.trim() &&

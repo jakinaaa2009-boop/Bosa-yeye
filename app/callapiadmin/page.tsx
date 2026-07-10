@@ -4,7 +4,7 @@ import { isCallApiAdminEnabled } from "@/lib/callapiadmin-gate";
 import CallApiAdminPanel from "@/components/CallApiAdminPanel";
 
 export const metadata: Metadata = {
-  title: "Local Test Panel",
+  title: "CallApiAdmin",
   robots: { index: false, follow: false },
 };
 
