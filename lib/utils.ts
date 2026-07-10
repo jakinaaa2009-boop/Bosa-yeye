@@ -21,7 +21,19 @@ export function formatDate(date: Date | string): string {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "Asia/Ulaanbaatar",
   });
+}
+
+/** Consistent Mongolian date for winner cards (avoids English locale fallback). */
+export function formatWinnerDate(date: Date | string): string {
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${year} оны ${month} сарын ${day}`;
 }
 
 export function formatDateTime(date: Date | string): string {

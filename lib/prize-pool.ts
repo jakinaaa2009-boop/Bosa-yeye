@@ -130,3 +130,18 @@ export function getWinnerPrizeValue(winner: {
   }
   return "";
 }
+
+export function getWinnerPrizeDisplay(winner: {
+  prizeName: string;
+  prizeType: "car" | "cash";
+  prizeAmount?: number;
+  carModel?: string;
+}): { title: string; subtitle?: string } {
+  const prizeValue = getWinnerPrizeValue(winner);
+
+  if (winner.prizeType === "car") {
+    return { title: prizeValue, subtitle: winner.prizeName };
+  }
+
+  return { title: winner.prizeName };
+}

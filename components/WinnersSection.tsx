@@ -3,22 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
-import { maskPhone, formatDate, getWinnerDisplayName } from "@/lib/utils";
-import { getWinnerPrizeValue } from "@/lib/prize-pool";
+import { maskPhone, formatWinnerDate, getWinnerDisplayName } from "@/lib/utils";
+import { getWinnerPrizeDisplay } from "@/lib/prize-pool";
 import Button from "./Button";
-
-interface WinnerCard {
-  id: string;
-  displayName: string;
-  phone: string;
-  prizeName: string;
-  prizeType: "car" | "cash";
-  prizeValue: string;
-  drawDate: string;
-}
+import WinnerCard, {
+  getWinnerGridClass,
+  type WinnerCardData,
+} from "./WinnerCard";
 
 export default function WinnersSection() {
-  const [winners, setWinners] = useState<WinnerCard[]>([]);
+  const [winners, setWinners] = useState<WinnerCardData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,19 +31,18 @@ export default function WinnersSection() {
             prizeAmount?: number;
             carModel?: string;
             drawDate: string;
-          }) => ({
-            id: w._id,
-            displayName: getWinnerDisplayName(w.phone || "", w.email),
-            phone: maskPhone(w.phone || ""),
-            prizeName: w.prizeName,
-            prizeType: w.prizeType,
-            prizeValue: getWinnerPrizeValue({
+          }) => {
+            const prize = getWinnerPrizeDisplay(w);
+            return {
+              id: w._id,
+              displayName: getWinnerDisplayName(w.phone || "", w.email),
+              phone: maskPhone(w.phone || ""),
+              prizeTitle: prize.title,
+              prizeSubtitle: prize.subtitle,
               prizeType: w.prizeType,
-              prizeAmount: w.prizeAmount,
-              carModel: w.carModel,
-            }),
-            drawDate: formatDate(w.drawDate),
-          })
+              drawDate: formatWinnerDate(w.drawDate),
+            };
+          }
         );
 
         setWinners(cards);
@@ -63,7 +56,7 @@ export default function WinnersSection() {
       <div className="absolute inset-0 bg-wine-red/15" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 sm:mb-16">
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-gold-light">
             СҮҮЛИЙН АЗТАНУУД
           </h2>
@@ -71,11 +64,11 @@ export default function WinnersSection() {
         </div>
 
         {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <div className={`${getWinnerGridClass(4)} gap-6 mb-10`}>
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="bg-card-gradient rounded-2xl border border-gold/20 p-6 animate-pulse h-36"
+                className="bg-card-gradient rounded-2xl border border-gold/20 p-6 animate-pulse h-52"
               />
             ))}
           </div>
@@ -87,40 +80,14 @@ export default function WinnersSection() {
             </p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <div className={`${getWinnerGridClass(winners.length)} gap-6 mb-10`}>
             {winners.map((winner) => (
-              <div
-                key={winner.id}
-                className="bg-card-gradient rounded-2xl border border-gold/30 p-6 shadow-card hover:shadow-gold transition-all duration-300"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gold-gradient flex items-center justify-center shrink-0">
-                    <Trophy className="w-5 h-5 text-coffee-dark" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-cream font-semibold truncate">
-                      {winner.displayName}
-                    </p>
-                    <p className="text-cream/50 text-xs mt-0.5">{winner.phone}</p>
-                    <p className="text-cream/40 text-xs mt-0.5">{winner.drawDate}</p>
-                  </div>
-                </div>
-                <p className="text-gold font-medium text-sm">{winner.prizeName}</p>
-                <p
-                  className={
-                    winner.prizeType === "car"
-                      ? "car-model-text text-gold-light text-sm mt-1"
-                      : "text-gold-light text-sm font-semibold mt-1"
-                  }
-                >
-                  {winner.prizeValue}
-                </p>
-              </div>
+              <WinnerCard key={winner.id} winner={winner} />
             ))}
           </div>
         )}
 
-        <div className="text-center">
+        <div className="text-center mt-8">
           <Link href="/winners">
             <Button variant="outline">Бүх ялагчдыг харах</Button>
           </Link>
