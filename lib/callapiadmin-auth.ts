@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { randomBytes, timingSafeEqual } from "crypto";
-import { isCallApiAdminEnabled } from "@/lib/callapiadmin-gate";
+import { isCallApiAdminEnabled, getCallApiAdminPasswordHash } from "@/lib/callapiadmin-gate";
 import {
   CALLAPIADMIN_SESSION_COOKIE,
   CALLAPIADMIN_CSRF_COOKIE,
@@ -117,7 +117,7 @@ export async function requireCallApiAdminSession(
 export async function verifyCallApiAdminPassword(
   password: string
 ): Promise<boolean> {
-  const hash = process.env.CALLAPIADMIN_PASSWORD_HASH?.trim();
+  const hash = getCallApiAdminPasswordHash();
   if (!hash) return false;
   return bcrypt.compare(password, hash);
 }

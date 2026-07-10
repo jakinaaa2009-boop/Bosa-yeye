@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/jwt";
-import { isCallApiAdminEnabled } from "@/lib/callapiadmin-gate";
 
 const userProtectedRoutes = ["/upload-receipt", "/my-receipts"];
 const adminRoutes = [
@@ -15,15 +14,6 @@ const adminRoutes = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  if (
-    pathname.startsWith("/callapiadmin") ||
-    pathname.startsWith("/api/callapiadmin")
-  ) {
-    if (!isCallApiAdminEnabled()) {
-      return new NextResponse(null, { status: 404 });
-    }
-  }
 
   const token = request.cookies.get("yeye_token")?.value;
   const payload = token ? await verifyToken(token) : null;
@@ -74,8 +64,5 @@ export const config = {
     "/admin/entries/:path*",
     "/admin/winners/:path*",
     "/admin/lucky-wheel/:path*",
-    "/callapiadmin",
-    "/callapiadmin/:path*",
-    "/api/callapiadmin/:path*",
   ],
 };

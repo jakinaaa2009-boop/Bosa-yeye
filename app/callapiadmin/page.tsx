@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { isCallApiAdminEnabled } from "@/lib/callapiadmin-gate";
 import CallApiAdminPanel from "@/components/CallApiAdminPanel";
+import CallApiAdminSetup from "@/components/CallApiAdminSetup";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "CallApiAdmin",
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function CallApiAdminPage() {
   if (!isCallApiAdminEnabled()) {
-    notFound();
+    return <CallApiAdminSetup />;
   }
 
   return <CallApiAdminPanel />;

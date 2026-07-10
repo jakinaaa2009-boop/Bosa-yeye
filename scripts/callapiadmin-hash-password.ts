@@ -8,6 +8,11 @@ if (!password) {
 }
 
 bcrypt.hash(password, 12).then((hash) => {
-  console.log("\nAdd to .env:\n");
+  const b64 = Buffer.from(hash).toString("base64");
+
+  console.log("\nLocal .env:\n");
   console.log(`CALLAPIADMIN_PASSWORD_HASH=${hash}\n`);
+
+  console.log("Vercel (recommended — avoids $ corruption):\n");
+  console.log(`CALLAPIADMIN_PASSWORD_HASH_B64=${b64}\n`);
 });
