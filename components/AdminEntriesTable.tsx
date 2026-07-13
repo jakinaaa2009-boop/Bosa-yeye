@@ -20,7 +20,32 @@ interface EntryRow {
   userId: { phone: string; email: string };
 }
 
-const filters = [
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+interface TabStats {
+  count: number;
+  totalAssigned: number;
+  totalUsed: number;
+  totalRemaining: number;
+}
+
+type TabKey = "all" | "approved" | "pending" | "rejected";
+
+const EMPTY_TAB: TabStats = {
+  count: 0,
+  totalAssigned: 0,
+  totalUsed: 0,
+  totalRemaining: 0,
+};
+
+const PAGE_SIZE = 20;
+
+const filters: { value: TabKey; label: string }[] = [
   { value: "all", label: "Бүгд" },
   { value: "approved", label: "Баталгаажсан" },
   { value: "pending", label: "Хүлээгдэж буй" },
@@ -34,38 +59,110 @@ export default function AdminEntriesTable() {
     totalUsed: 0,
     totalRemaining: 0,
   });
-  const [filter, setFilter] = useState("all");
+  const [tabs, setTabs] = useState<Record<TabKey, TabStats>>({
+    all: { ...EMPTY_TAB },
+    approved: { ...EMPTY_TAB },
+    pending: { ...EMPTY_TAB },
+    rejected: { ...EMPTY_TAB },
+  });
+  const [filter, setFilter] = useState<TabKey>("all");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [draftEntries, setDraftEntries] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
 
-  const fetchEntries = useCallback(() => {
-    setLoading(true);
-    const url =
-      filter === "all"
-        ? "/api/admin/entries"
-        : `/api/admin/entries?status=${filter}`;
+  const buildUrl = useCallback(
+    (pageNum: number) => {
+      const params = new URLSearchParams({
+        page: String(pageNum),
+        limit: String(PAGE_SIZE),
+      });
+      if (filter !== "all") params.set("status", filter);
+      return `/api/admin/entries?${params.toString()}`;
+    },
+    [filter]
+  );
 
-    fetch(url, { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) {
-          setEntries(data.entries);
-          setSummary(data.summary);
-          const drafts: Record<string, string> = {};
-          data.entries.forEach((row: EntryRow) => {
-            drafts[row._id] = String(row.assignedEntries);
-          });
-          setDraftEntries(drafts);
+  const mergeDrafts = (rows: EntryRow[], append: boolean) => {
+    setDraftEntries((current) => {
+      const next = append ? { ...current } : {};
+      rows.forEach((row) => {
+        next[row._id] = String(row.assignedEntries);
+      });
+      return next;
+    });
+  };
+
+  const fetchEntries = useCallback(
+    async (pageNum: number, append = false) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
+
+      setError("");
+
+      try {
+        const res = await fetch(buildUrl(pageNum), { credentials: "include" });
+        const data = await res.json();
+
+        if (!data.success) {
+          setError(data.message || "Эрх ачааллахад алдаа гарлаа");
+          if (!append) {
+            setEntries([]);
+            setPagination(null);
+            setSummary({ totalAssigned: 0, totalUsed: 0, totalRemaining: 0 });
+            setTabs({
+              all: { ...EMPTY_TAB },
+              approved: { ...EMPTY_TAB },
+              pending: { ...EMPTY_TAB },
+              rejected: { ...EMPTY_TAB },
+            });
+          }
+          return;
         }
-      })
-      .finally(() => setLoading(false));
-  }, [filter]);
+
+        setPagination(data.pagination);
+        setPage(pageNum);
+        setSummary(data.summary);
+        if (data.tabs) setTabs(data.tabs);
+        setEntries((current) =>
+          append ? [...current, ...data.entries] : data.entries
+        );
+        mergeDrafts(data.entries, append);
+      } catch {
+        setError("Эрх ачааллахад алдаа гарлаа");
+        if (!append) {
+          setEntries([]);
+          setPagination(null);
+          setSummary({ totalAssigned: 0, totalUsed: 0, totalRemaining: 0 });
+          setTabs({
+            all: { ...EMPTY_TAB },
+            approved: { ...EMPTY_TAB },
+            pending: { ...EMPTY_TAB },
+            rejected: { ...EMPTY_TAB },
+          });
+        }
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [buildUrl]
+  );
 
   useEffect(() => {
-    fetchEntries();
+    fetchEntries(1, false);
   }, [fetchEntries]);
+
+  const total = pagination?.total ?? 0;
+  const hasMore = entries.length < total;
+
+  const handleLoadMore = () => {
+    if (!hasMore || loadingMore) return;
+    fetchEntries(page + 1, true);
+  };
 
   const handleSave = async (row: EntryRow) => {
     const parsed = parsePositiveEntryCount(draftEntries[row._id]);
@@ -100,7 +197,7 @@ export default function AdminEntriesTable() {
         return;
       }
 
-      fetchEntries();
+      await fetchEntries(1, false);
     } catch {
       setError("Эрх хадгалахад алдаа гарлаа");
     } finally {
@@ -131,22 +228,77 @@ export default function AdminEntriesTable() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {filters.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={cn(
-              "px-4 py-2 rounded-xl text-sm font-medium transition-all",
-              filter === f.value
-                ? "bg-gold-gradient text-coffee-dark"
-                : "bg-coffee-dark/60 text-cream/60 border border-gold/20"
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="mb-6 rounded-2xl border border-gold/20 bg-coffee-dark/40 p-2">
+        <div
+          className="grid grid-cols-2 lg:grid-cols-4 gap-2"
+          role="tablist"
+          aria-label="Баримтын төлөв"
+        >
+          {filters.map((f) => {
+            const stats = tabs[f.value];
+            const active = filter === f.value;
+
+            return (
+              <button
+                key={f.value}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setFilter(f.value)}
+                className={cn(
+                  "rounded-xl px-3 py-3 text-left transition-colors border",
+                  active
+                    ? "bg-gold-gradient text-coffee-dark border-transparent"
+                    : "bg-coffee-brown/50 text-cream/70 border-gold/15 hover:border-gold/35 hover:text-cream"
+                )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">{f.label}</span>
+                  <span
+                    className={cn(
+                      "text-xs font-bold tabular-nums px-2 py-0.5 rounded-md",
+                      active ? "bg-coffee-dark/15" : "bg-gold/10 text-gold"
+                    )}
+                  >
+                    {stats.count}
+                  </span>
+                </div>
+                <div
+                  className={cn(
+                    "mt-2 grid grid-cols-3 gap-1 text-[11px] leading-tight",
+                    active ? "text-coffee-dark/75" : "text-cream/45"
+                  )}
+                >
+                  <div>
+                    <p>Олгосон</p>
+                    <p className="font-semibold tabular-nums">
+                      {stats.totalAssigned}
+                    </p>
+                  </div>
+                  <div>
+                    <p>Ашигласан</p>
+                    <p className="font-semibold tabular-nums">
+                      {stats.totalUsed}
+                    </p>
+                  </div>
+                  <div>
+                    <p>Үлдсэн</p>
+                    <p className="font-semibold tabular-nums">
+                      {stats.totalRemaining}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {!loading && total > 0 && (
+        <p className="mb-4 text-cream/50 text-sm text-right">
+          Харуулж буй: {entries.length} / {total}
+        </p>
+      )}
 
       {error && <p className="mb-4 text-danger text-sm">{error}</p>}
 
@@ -286,6 +438,18 @@ export default function AdminEntriesTable() {
           </tbody>
         </table>
       </div>
+
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            loading={loadingMore}
+          >
+            Цааш үзэх
+          </Button>
+        </div>
+      )}
 
       <p className="mt-4 text-cream/45 text-xs flex items-center gap-2">
         <Ticket className="w-4 h-4 text-gold/60" />
