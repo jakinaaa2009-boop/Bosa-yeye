@@ -51,6 +51,64 @@ export function cn(...classes: (string | boolean | undefined | null)[]): string 
   return classes.filter(Boolean).join(" ");
 }
 
+export function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function parseDateFilter(value: string | null): Date | null {
+  if (!value?.trim()) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+const ULAANBAATAR_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+function parseDateOnly(value: string): { year: number; month: number; day: number } | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const probe = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    probe.getUTCFullYear() !== year ||
+    probe.getUTCMonth() !== month - 1 ||
+    probe.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return { year, month, day };
+}
+
+/** Start of calendar day in Asia/Ulaanbaatar (UTC+8). */
+export function startOfDayUlaanbaatar(value: string | null): Date | null {
+  if (!value?.trim()) return null;
+
+  const dateOnly = parseDateOnly(value);
+  if (!dateOnly) return parseDateFilter(value);
+
+  const { year, month, day } = dateOnly;
+  return new Date(
+    Date.UTC(year, month - 1, day, 0, 0, 0, 0) - ULAANBAATAR_OFFSET_MS
+  );
+}
+
+/** End of calendar day in Asia/Ulaanbaatar (UTC+8). */
+export function endOfDayUlaanbaatar(value: string | null): Date | null {
+  if (!value?.trim()) return null;
+
+  const dateOnly = parseDateOnly(value);
+  if (!dateOnly) return parseDateFilter(value);
+
+  const { year, month, day } = dateOnly;
+  return new Date(
+    Date.UTC(year, month - 1, day, 23, 59, 59, 999) - ULAANBAATAR_OFFSET_MS
+  );
+}
+
 export function getWinnerDisplayName(phone: string, email?: string): string {
   if (email) {
     const namePart = email.split("@")[0];

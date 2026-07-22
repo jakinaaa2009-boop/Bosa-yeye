@@ -5,6 +5,7 @@ import { Ticket } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import Button from "./Button";
 import Input from "./Input";
+import Pagination from "./Pagination";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
 import { ENTRY_PRESETS, parsePositiveEntryCount } from "@/lib/lottery-entries";
 
@@ -69,7 +70,6 @@ export default function AdminEntriesTable() {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [draftEntries, setDraftEntries] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
@@ -86,21 +86,17 @@ export default function AdminEntriesTable() {
     [filter]
   );
 
-  const mergeDrafts = (rows: EntryRow[], append: boolean) => {
-    setDraftEntries((current) => {
-      const next = append ? { ...current } : {};
-      rows.forEach((row) => {
-        next[row._id] = String(row.assignedEntries);
-      });
-      return next;
+  const mergeDrafts = (rows: EntryRow[]) => {
+    const next: Record<string, string> = {};
+    rows.forEach((row) => {
+      next[row._id] = String(row.assignedEntries);
     });
+    setDraftEntries(next);
   };
 
   const fetchEntries = useCallback(
-    async (pageNum: number, append = false) => {
-      if (append) setLoadingMore(true);
-      else setLoading(true);
-
+    async (pageNum: number) => {
+      setLoading(true);
       setError("");
 
       try {
@@ -109,31 +105,6 @@ export default function AdminEntriesTable() {
 
         if (!data.success) {
           setError(data.message || "Эрх ачааллахад алдаа гарлаа");
-          if (!append) {
-            setEntries([]);
-            setPagination(null);
-            setSummary({ totalAssigned: 0, totalUsed: 0, totalRemaining: 0 });
-            setTabs({
-              all: { ...EMPTY_TAB },
-              approved: { ...EMPTY_TAB },
-              pending: { ...EMPTY_TAB },
-              rejected: { ...EMPTY_TAB },
-            });
-          }
-          return;
-        }
-
-        setPagination(data.pagination);
-        setPage(pageNum);
-        setSummary(data.summary);
-        if (data.tabs) setTabs(data.tabs);
-        setEntries((current) =>
-          append ? [...current, ...data.entries] : data.entries
-        );
-        mergeDrafts(data.entries, append);
-      } catch {
-        setError("Эрх ачааллахад алдаа гарлаа");
-        if (!append) {
           setEntries([]);
           setPagination(null);
           setSummary({ totalAssigned: 0, totalUsed: 0, totalRemaining: 0 });
@@ -143,25 +114,44 @@ export default function AdminEntriesTable() {
             pending: { ...EMPTY_TAB },
             rejected: { ...EMPTY_TAB },
           });
+          return;
         }
+
+        setPagination(data.pagination);
+        setPage(pageNum);
+        setSummary(data.summary);
+        if (data.tabs) setTabs(data.tabs);
+        setEntries(data.entries);
+        mergeDrafts(data.entries);
+      } catch {
+        setError("Эрх ачааллахад алдаа гарлаа");
+        setEntries([]);
+        setPagination(null);
+        setSummary({ totalAssigned: 0, totalUsed: 0, totalRemaining: 0 });
+        setTabs({
+          all: { ...EMPTY_TAB },
+          approved: { ...EMPTY_TAB },
+          pending: { ...EMPTY_TAB },
+          rejected: { ...EMPTY_TAB },
+        });
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
     [buildUrl]
   );
 
   useEffect(() => {
-    fetchEntries(1, false);
+    fetchEntries(1);
   }, [fetchEntries]);
 
   const total = pagination?.total ?? 0;
-  const hasMore = entries.length < total;
+  const totalPages = pagination?.totalPages ?? 0;
 
-  const handleLoadMore = () => {
-    if (!hasMore || loadingMore) return;
-    fetchEntries(page + 1, true);
+  const handlePageChange = (nextPage: number) => {
+    if (nextPage < 1 || nextPage > totalPages || nextPage === page) return;
+    fetchEntries(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSave = async (row: EntryRow) => {
@@ -197,7 +187,7 @@ export default function AdminEntriesTable() {
         return;
       }
 
-      await fetchEntries(1, false);
+      await fetchEntries(page);
     } catch {
       setError("Эрх хадгалахад алдаа гарлаа");
     } finally {
@@ -296,7 +286,7 @@ export default function AdminEntriesTable() {
 
       {!loading && total > 0 && (
         <p className="mb-4 text-cream/50 text-sm text-right">
-          Харуулж буй: {entries.length} / {total}
+          Нийт: {total}
         </p>
       )}
 
@@ -439,17 +429,14 @@ export default function AdminEntriesTable() {
         </table>
       </div>
 
-      {hasMore && (
-        <div className="mt-6 flex justify-center">
-          <Button
-            variant="outline"
-            onClick={handleLoadMore}
-            loading={loadingMore}
-          >
-            Цааш үзэх
-          </Button>
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={total}
+        pageSize={PAGE_SIZE}
+        onPageChange={handlePageChange}
+        loading={loading}
+      />
 
       <p className="mt-4 text-cream/45 text-xs flex items-center gap-2">
         <Ticket className="w-4 h-4 text-gold/60" />

@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Eye, CheckCircle, XCircle, Trash2, Ticket } from "lucide-react";
+import { Eye, CheckCircle, XCircle, Trash2, Ticket, Search, X, Calendar } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import ReceiptPreviewModal from "./ReceiptPreviewModal";
 import EditEntriesModal from "./EditEntriesModal";
+import Input from "./Input";
+import Pagination from "./Pagination";
 import { formatCurrency, formatDateTime, cn } from "@/lib/utils";
-import Button from "./Button";
 
 interface ReceiptUser {
   phone: string;
@@ -36,7 +37,15 @@ interface PaginationInfo {
   totalPages: number;
 }
 
+interface ExactReceiptMatch {
+  receiptNumber: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+  user: { phone: string; email: string } | null;
+}
+
 const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 350;
 
 const filters = [
   { value: "all", label: "Бүгд" },
@@ -48,10 +57,15 @@ const filters = [
 export default function AdminReceiptsTable() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [filter, setFilter] = useState("all");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [exactReceiptMatch, setExactReceiptMatch] =
+    useState<ExactReceiptMatch | null>(null);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
   const [editingEntriesReceipt, setEditingEntriesReceipt] =
     useState<Receipt | null>(null);
@@ -60,6 +74,18 @@ export default function AdminReceiptsTable() {
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
+
+  const hasInvalidDateRange =
+    !!dateFrom && !!dateTo && dateFrom > dateTo;
 
   const buildUrl = useCallback(
     (pageNum: number) => {
@@ -68,17 +94,25 @@ export default function AdminReceiptsTable() {
         limit: String(PAGE_SIZE),
       });
       if (filter !== "all") params.set("status", filter);
+      if (searchQuery) params.set("search", searchQuery);
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo) params.set("dateTo", dateTo);
       return `/api/admin/receipts?${params.toString()}`;
     },
-    [filter]
+    [filter, searchQuery, dateFrom, dateTo]
   );
 
   const fetchReceipts = useCallback(
-    async (pageNum: number, append = false) => {
-      if (append) setLoadingMore(true);
-      else setLoading(true);
+    async (pageNum: number) => {
+      if (hasInvalidDateRange) {
+        setError("Эхлэх огноо дуусах огнооноос хойш байж болохгүй");
+        setLoading(false);
+        return;
+      }
 
+      setLoading(true);
       setError("");
+      setSuccess("");
 
       try {
         const res = await fetch(buildUrl(pageNum), { credentials: "include" });
@@ -86,59 +120,67 @@ export default function AdminReceiptsTable() {
 
         if (!data.success) {
           setError(data.message || "Баримт ачааллахад алдаа гарлаа");
-          if (!append) {
-            setReceipts([]);
-            setPagination(null);
-          }
+          setReceipts([]);
+          setPagination(null);
+          setExactReceiptMatch(null);
           return;
         }
 
         setPagination(data.pagination);
         setPage(pageNum);
-        setReceipts((current) =>
-          append ? [...current, ...data.receipts] : data.receipts
-        );
+        setExactReceiptMatch(data.exactReceiptMatch ?? null);
+        setReceipts(data.receipts);
       } catch {
         setError("Баримт ачааллахад алдаа гарлаа");
-        if (!append) {
-          setReceipts([]);
-          setPagination(null);
-        }
+        setReceipts([]);
+        setPagination(null);
+        setExactReceiptMatch(null);
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
-    [buildUrl]
+    [buildUrl, hasInvalidDateRange]
   );
 
   useEffect(() => {
-    fetchReceipts(1, false);
+    fetchReceipts(1);
   }, [fetchReceipts]);
 
   const total = pagination?.total ?? 0;
-  const hasMore = receipts.length < total;
+  const totalPages = pagination?.totalPages ?? 0;
 
-  const handleLoadMore = () => {
-    if (!hasMore || loadingMore) return;
-    fetchReceipts(page + 1, true);
+  const handlePageChange = (nextPage: number) => {
+    if (nextPage < 1 || nextPage > totalPages || nextPage === page) return;
+    fetchReceipts(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const refreshList = () => fetchReceipts(1, false);
+  const refreshList = async (targetPage = page) => {
+    await fetchReceipts(targetPage);
+  };
 
   const handleApprove = async (id: string, assignedEntries = 1) => {
     setActionLoading(true);
+    setError("");
+    setSuccess("");
     try {
       const res = await fetch(`/api/admin/receipts/${id}/approve`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assignedEntries }),
       });
       const data = await res.json();
-      if (data.success) {
-        refreshList();
-        setSelectedReceipt(null);
+      if (!data.success) {
+        setError(data.message || "Батлахад алдаа гарлаа");
+        return;
       }
+      setSuccess("Баримт амжилттай баталгаажлаа");
+      setSelectedReceipt(null);
+      setRejectMode(false);
+      await refreshList(1);
+    } catch {
+      setError("Батлахад алдаа гарлаа");
     } finally {
       setActionLoading(false);
     }
@@ -179,9 +221,11 @@ export default function AdminReceiptsTable() {
   const handleReject = async (id: string, reason: string) => {
     setActionLoading(true);
     setError("");
+    setSuccess("");
     try {
       const res = await fetch(`/api/admin/receipts/${id}/reject`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rejectionReason: reason }),
       });
@@ -190,9 +234,12 @@ export default function AdminReceiptsTable() {
         setError(data.message || "Татгалзахад алдаа гарлаа");
         return;
       }
-      refreshList();
+      setSuccess("Баримт амжилттай татгалзлаа");
       setSelectedReceipt(null);
       setRejectMode(false);
+      await refreshList(1);
+    } catch {
+      setError("Татгалзахад алдаа гарлаа");
     } finally {
       setActionLoading(false);
     }
@@ -242,6 +289,98 @@ export default function AdminReceiptsTable() {
 
   return (
     <div>
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-cream/40 pointer-events-none" />
+          <Input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="И-Баримтын дугаар, утас, email-ээр хайх..."
+            className="pl-11 pr-11"
+            aria-label="Баримт хайх"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-cream/50 hover:text-cream hover:bg-white/5 transition-colors"
+              aria-label="Хайлт цэвэрлэх"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <p className="mt-2 text-cream/45 text-xs">
+          Давхардсан и-баримт шалгахын тулд баримтын дугаарыг яг оруулж хайна уу.
+        </p>
+
+        <div className="mt-4 rounded-2xl border border-gold/20 bg-coffee-dark/40 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar className="w-4 h-4 text-gold/70" />
+            <p className="text-cream/70 text-sm font-medium">
+              Огноо, цагаар шүүх
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              type="date"
+              label="Эхлэх огноо"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+            <Input
+              type="date"
+              label="Дуусах огноо"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
+
+          {(dateFrom || dateTo) && (
+            <div className="mt-3 flex items-center justify-between gap-3">
+              {hasInvalidDateRange && (
+                <p className="text-danger text-xs">
+                  Эхлэх огноо дуусах огнооноос хойш байж болохгүй
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                }}
+                className="ml-auto text-sm text-cream/60 hover:text-gold transition-colors"
+              >
+                Огнооны шүүлт цэвэрлэх
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {exactReceiptMatch && (
+        <div className="mb-4 rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3">
+          <p className="text-warning text-sm font-semibold">
+            Энэ и-баримт аль хэдийн бүртгэгдсэн байна
+          </p>
+          <p className="text-cream/80 text-sm mt-1">
+            <span className="text-gold font-medium">
+              {exactReceiptMatch.receiptNumber}
+            </span>
+            {" · "}
+            {exactReceiptMatch.user?.phone ?? "-"}
+            {" · "}
+            {exactReceiptMatch.user?.email ?? "-"}
+            {" · "}
+            <StatusBadge status={exactReceiptMatch.status} />
+            {" · "}
+            {formatDateTime(exactReceiptMatch.createdAt)}
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex flex-wrap gap-2">
           {filters.map((f) => (
@@ -264,15 +403,13 @@ export default function AdminReceiptsTable() {
           <p className="text-cream/60 text-sm">
             Нийт бүртгэл:{" "}
             <span className="text-gold font-semibold">{total}</span>
-            {receipts.length > 0 && (
-              <span className="text-cream/40">
-                {" "}
-                · Харагдаж буй: {receipts.length}
-              </span>
-            )}
           </p>
         )}
       </div>
+
+      {success && (
+        <p className="mb-4 text-success text-sm">{success}</p>
+      )}
 
       {error && <p className="mb-4 text-danger text-sm">{error}</p>}
 
@@ -301,14 +438,25 @@ export default function AdminReceiptsTable() {
             ) : receipts.length === 0 ? (
               <tr>
                 <td colSpan={9} className="px-4 py-12 text-center text-cream/50">
-                  Баримт олдсонгүй
+                  {searchQuery
+                    ? "Хайлтад тохирох баримт олдсонгүй"
+                    : "Баримт олдсонгүй"}
                 </td>
               </tr>
             ) : (
-              receipts.map((receipt) => (
+              receipts.map((receipt) => {
+                const isExactMatch =
+                  !!exactReceiptMatch &&
+                  receipt.receiptNumber.toLowerCase() ===
+                    exactReceiptMatch.receiptNumber.toLowerCase();
+
+                return (
                 <tr
                   key={receipt._id}
-                  className="border-b border-gold/10 hover:bg-gold/5"
+                  className={cn(
+                    "border-b border-gold/10 hover:bg-gold/5",
+                    isExactMatch && "bg-warning/10 hover:bg-warning/15"
+                  )}
                 >
                   <td className="px-4 py-3">
                     <button
@@ -326,7 +474,9 @@ export default function AdminReceiptsTable() {
                     </button>
                   </td>
                   <td className="px-4 py-3 text-cream text-sm">
-                    {receipt.receiptNumber}
+                    <span className={cn(isExactMatch && "text-warning font-semibold")}>
+                      {receipt.receiptNumber}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-cream/70 text-sm">
                     {receipt.userId?.phone}
@@ -360,7 +510,7 @@ export default function AdminReceiptsTable() {
                       {receipt.status === "pending" && (
                         <>
                           <button
-                            onClick={() => handleApprove(receipt._id)}
+                            onClick={() => handleApprove(String(receipt._id))}
                             className="p-2 rounded-lg text-success hover:bg-success/10 transition-colors"
                             title="Батлах"
                           >
@@ -395,24 +545,21 @@ export default function AdminReceiptsTable() {
                     </div>
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
-      {!loading && hasMore && (
-        <div className="mt-6 text-center">
-          <Button
-            variant="outline"
-            onClick={handleLoadMore}
-            loading={loadingMore}
-            className="min-w-[200px]"
-          >
-            Цааш үзэх ({receipts.length} / {total})
-          </Button>
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={total}
+        pageSize={PAGE_SIZE}
+        onPageChange={handlePageChange}
+        loading={loading}
+      />
 
       {editingEntriesReceipt && (
         <EditEntriesModal
@@ -429,9 +576,9 @@ export default function AdminReceiptsTable() {
           onClose={closeReceipt}
           initialRejectMode={rejectMode}
           onApprove={(assignedEntries) =>
-            handleApprove(selectedReceipt._id, assignedEntries)
+            handleApprove(String(selectedReceipt._id), assignedEntries)
           }
-          onReject={(reason) => handleReject(selectedReceipt._id, reason)}
+          onReject={(reason) => handleReject(String(selectedReceipt._id), reason)}
           loading={actionLoading}
         />
       )}

@@ -24,7 +24,7 @@ const ReceiptSchema = new Schema<IReceipt>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     receiptNumber: { type: String, required: true, unique: true, trim: true },
     amount: { type: Number, required: true, min: 0 },
-    productCount: { type: Number, required: true, min: 1 },
+    productCount: { type: Number, default: 1, min: 1 },
     imageUrl: { type: String, required: true },
     imageKey: { type: String, required: true },
     status: {
@@ -42,6 +42,13 @@ const ReceiptSchema = new Schema<IReceipt>(
   },
   { timestamps: true }
 );
+
+ReceiptSchema.pre("validate", function (next) {
+  if (this.productCount == null || this.productCount < 1) {
+    this.productCount = 1;
+  }
+  next();
+});
 
 const Receipt: Model<IReceipt> =
   mongoose.models.Receipt || mongoose.model<IReceipt>("Receipt", ReceiptSchema);
