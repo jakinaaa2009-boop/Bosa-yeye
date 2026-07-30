@@ -30,9 +30,18 @@ export function formatWinnerDate(date: Date | string): string {
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return "";
 
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ulaanbaatar",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(d);
+
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+
+  if (!year || !month || !day) return "";
   return `${year} оны ${month} сарын ${day}`;
 }
 

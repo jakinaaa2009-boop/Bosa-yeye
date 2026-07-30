@@ -6,6 +6,7 @@ import { getWinnerPrizeDisplay } from "@/lib/prize-pool";
 import WinnerCard, { getWinnerGridClass } from "@/components/WinnerCard";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 async function getWinners() {
   try {
