@@ -8,9 +8,9 @@ import { SEED_PRIZES } from "../lib/prize-pool";
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/yeye-lucky-draw";
 
-const ADMIN_PHONE = "admin";
-const ADMIN_EMAIL = "admin@yeyecoffee.mn";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_PHONE = process.env.SEED_ADMIN_PHONE || "admin";
+const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL || "admin@yeyecoffee.mn";
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "admin123";
 
 async function seed() {
   console.log("Connecting to MongoDB...");
@@ -30,9 +30,7 @@ async function seed() {
     existingAdmin.password = hashedPassword;
     existingAdmin.role = "admin";
     await existingAdmin.save();
-    console.log(
-      `Admin user updated: username=${ADMIN_PHONE}, password=${ADMIN_PASSWORD}`
-    );
+    console.log(`Admin user updated: username=${ADMIN_PHONE}`);
   } else {
     await User.create({
       phone: ADMIN_PHONE,
@@ -41,9 +39,7 @@ async function seed() {
       password: hashedPassword,
       role: "admin",
     });
-    console.log(
-      `Admin user created: username=${ADMIN_PHONE}, password=${ADMIN_PASSWORD}`
-    );
+    console.log(`Admin user created: username=${ADMIN_PHONE}`);
   }
 
   await Prize.deleteMany({
